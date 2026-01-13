@@ -393,24 +393,8 @@
     <div id="app-container"
         class="relative w-full h-[100dvh] bg-slate-50 overflow-hidden text-slate-600 font-sans selection:bg-sky-200 selection:text-sky-900">
 
-        <!-- Status Bar -->
-        <div
-            class="absolute top-[8px] w-full h-[22px] px-6 flex justify-between items-center z-[60] text-slate-500 pointer-events-none select-none">
-            <span id="statusBarTime" class="font-['Poppins'] font-semibold text-[11px] tracking-wide ml-1">16:14</span>
-            <div class="flex items-center gap-1 mr-1 text-slate-500">
-                <i class="fa-solid fa-signal text-[9px]"></i>
-                <i class="fa-solid fa-wifi text-[10px]"></i>
-                <div class="relative w-[18px] h-[8px] border border-slate-400 rounded-[2px] p-[0.5px]">
-                    <div class="h-full w-[80%] bg-slate-500 rounded-[1px]"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Dynamic Island -->
-        <div onclick="resetApp()"
-            class="absolute top-[8px] left-1/2 transform -translate-x-1/2 w-20 h-[22px] bg-black rounded-full z-50 cursor-pointer hover:scale-105 active:scale-95 transition-transform flex items-center justify-center shadow-sm">
-            <div class="absolute right-4 w-1.5 h-1.5 rounded-full bg-[#1a1a1a] shadow-inner"></div>
-        </div>
+        <!-- Status Bar Removed -->
+        <!-- Dynamic Island Removed -->
 
         <!-- Screen Container -->
         <div id="screenContainer"
@@ -666,14 +650,7 @@
             }
         }
 
-        function updateStatusBarClock() {
-            const now = new Date();
-            const hours = now.getHours().toString();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('statusBarTime').textContent = `${hours}:${minutes}`;
-        }
-        setInterval(updateStatusBarClock, 1000);
-        updateStatusBarClock();
+        // Clock logic removed as Status Bar is gone
 
         let capsules = [];
         let currentTab = 'unlocked';
