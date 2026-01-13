@@ -1,0 +1,2943 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Time Capsule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Inter:wght@500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
+
+        :root {
+            --sky-top: #bae6fd;
+            /* sky-200 */
+            --sky-mid: #e0f2fe;
+            /* sky-100 */
+            --sky-btm: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #f0f9ff;
+            color: #475569;
+            /* slate-600 */
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            /* 外側の背景も空っぽく */
+            background-image: radial-gradient(at 0% 0%, #e0f2fe 0, transparent 50%),
+                radial-gradient(at 100% 100%, #bae6fd 0, transparent 50%);
+        }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes float-gentle {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .animate-float {
+            animation: float-gentle 6s ease-in-out infinite;
+        }
+
+        @keyframes float-up-guide {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+        }
+
+        .animate-swipe-guide {
+            animation: float-up-guide 2s infinite;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            40% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes dramatic-drop {
+            0% {
+                transform: translateY(-100vh) rotate(var(--rot-start)) scale(1.2);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            70% {
+                transform: translateY(20px) rotate(var(--rot-end)) scale(1.0);
+            }
+
+            85% {
+                transform: translateY(-10px) rotate(var(--rot-end)) scale(1.0);
+            }
+
+            100% {
+                transform: translateY(0) rotate(var(--rot-end)) scale(1);
+            }
+        }
+
+        .animate-pop {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .photo-interactive {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: dramatic-drop 1s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+            border: 4px solid white;
+            transition: transform 0.3s;
+        }
+
+        /* --- List Mode Styles --- */
+        .list-mode {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            align-content: start;
+        }
+
+        .list-mode .photo-interactive {
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+            aspect-ratio: 3/4;
+            transform: none !important;
+            animation: none !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slow-zoom {
+            0% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .animate-slow-zoom {
+            animation: slow-zoom 10s ease-out forwards;
+        }
+
+        @keyframes fade-up {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fade-up 0.8s ease-out forwards;
+        }
+
+        @keyframes fade-down {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-down {
+            animation: fade-down 0.5s ease-out forwards;
+        }
+
+        /* Soft Pulse for Plus Button */
+        @keyframes soft-ping {
+            0% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .animate-soft-ping {
+            animation: soft-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        /* Sparkle Animation for AI Button */
+        @keyframes sparkle {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .ai-gradient {
+            background: linear-gradient(270deg, #a855f7, #ec4899, #8b5cf6);
+            background-size: 200% 200%;
+            animation: sparkle 3s ease infinite;
+        }
+
+        /* Glassmorphism Utility */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Capsule Shape */
+        .capsule-shape {
+            background: linear-gradient(to bottom, #fde047 50%, #ffffff 50%);
+            box-shadow:
+                inset -5px -5px 15px rgba(0, 0, 0, 0.05),
+                inset 5px 5px 15px rgba(255, 255, 255, 0.8),
+                0 15px 35px rgba(56, 189, 248, 0.15);
+            /* Sky blue shadow */
+            border-radius: 9999px;
+            /* Pill shape */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .capsule-highlight {
+            position: absolute;
+            top: 12%;
+            left: 15%;
+            width: 45%;
+            height: 25%;
+            background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* Nav Item */
+        .nav-item {
+            color: #94a3b8;
+            transition: all 0.3s;
+        }
+
+        .nav-item.active {
+            color: #38bdf8;
+            /* sky-400 */
+        }
+
+        .nav-item.active i {
+            transform: translateY(-2px);
+            text-shadow: 0 4px 10px rgba(56, 189, 248, 0.4);
+        }
+
+        /* Tab Button */
+        .tab-btn {
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: #fff;
+            color: #0ea5e9;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+            transform: scale(1.05);
+            /* Slightly larger */
+        }
+
+        /* --- THEME ATMOSPHERES --- */
+        .bg-theme-unlocked {
+            background-image: linear-gradient(to bottom, #dbeafe 0%, #eff6ff 100%);
+            /* bright sky */
+            transition: background 0.8s ease;
+        }
+
+        .bg-theme-locked {
+            background-image: linear-gradient(to bottom, #a5b4fc 0%, #e0e7ff 100%);
+            /* cool twilight */
+            transition: background 0.8s ease;
+        }
+
+        /* Emotion Tag Styles */
+        .emotion-tag {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px dashed #cbd5e1;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .emotion-tag:active {
+            transform: scale(0.95);
+        }
+
+        .emotion-tag.selected {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+            border: 1px solid white;
+        }
+
+        /* Reveal Animation Elements */
+        .reveal-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, #ffffff 0%, #e0f2fe 100%);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+        }
+
+        .reveal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .flash-white {
+            position: absolute;
+            inset: 0;
+            background: white;
+            z-index: 110;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease-out;
+        }
+
+        .flash-white.active {
+            opacity: 1;
+        }
+
+        /* Utility for transitions */
+        .transition-layout {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Background Themes (Sky to White) */
+        .bg-sky-main {
+            background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 40%, #ffffff 100%);
+        }
+
+        .bg-sky-evening {
+            background: linear-gradient(180deg, #e9d5ff 0%, #fdf4ff 40%, #ffffff 100%);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Responsive Full Screen Container -->
+    <div id="app-container"
+        class="relative w-full h-[100dvh] bg-slate-50 overflow-hidden text-slate-600 font-sans selection:bg-sky-200 selection:text-sky-900">
+
+        <!-- Status Bar -->
+        <div
+            class="absolute top-[8px] w-full h-[22px] px-6 flex justify-between items-center z-[60] text-slate-500 pointer-events-none select-none">
+            <span id="statusBarTime" class="font-['Poppins'] font-semibold text-[11px] tracking-wide ml-1">16:14</span>
+            <div class="flex items-center gap-1 mr-1 text-slate-500">
+                <i class="fa-solid fa-signal text-[9px]"></i>
+                <i class="fa-solid fa-wifi text-[10px]"></i>
+                <div class="relative w-[18px] h-[8px] border border-slate-400 rounded-[2px] p-[0.5px]">
+                    <div class="h-full w-[80%] bg-slate-500 rounded-[1px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Island -->
+        <div onclick="resetApp()"
+            class="absolute top-[8px] left-1/2 transform -translate-x-1/2 w-20 h-[22px] bg-black rounded-full z-50 cursor-pointer hover:scale-105 active:scale-95 transition-transform flex items-center justify-center shadow-sm">
+            <div class="absolute right-4 w-1.5 h-1.5 rounded-full bg-[#1a1a1a] shadow-inner"></div>
+        </div>
+
+        <!-- Screen Container -->
+        <div id="screenContainer"
+            class="w-full h-full relative flex flex-col overflow-hidden rounded-[2.2rem] bg-theme-unlocked transition-all duration-700 ease-in-out">
+
+            <!-- Top Tabs (Filter) - Added ID for toggling -->
+            <div id="topTabs" class="pt-12 px-4 z-10 w-full transition-layout">
+                <div class="glass-panel p-1 rounded-full flex justify-between relative">
+                    <button onclick="switchTab('unlocked')" id="tab-unlocked"
+                        class="tab-btn active w-1/2 py-1.5 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-lock-open text-[9px]"></i> 開封可能
+                    </button>
+                    <button onclick="switchTab('locked')" id="tab-locked"
+                        class="tab-btn w-1/2 py-1.5 rounded-full text-[10px] font-bold text-slate-400 flex items-center justify-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-lock text-[9px]"></i> 封印中
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <main id="mainContent" class="flex-1 overflow-hidden pt-4 pb-24 px-0 relative transition-layout">
+                <!-- Content injected via JS -->
+            </main>
+
+            <!-- Bottom Navigation - Glassmorphism -->
+            <nav id="bottomNav"
+                class="absolute bottom-0 w-full glass-panel border-b-0 border-x-0 pb-4 pt-2 z-20 rounded-t-3xl transition-transform duration-300">
+                <div class="grid grid-cols-5 items-end px-1 h-10">
+
+                    <!-- 1. Home -->
+                    <button onclick="showPage('home')" id="nav-home"
+                        class="nav-item active flex flex-col items-center justify-end h-full pb-0.5 group">
+                        <i class="fa-solid fa-house text-lg mb-0.5 group-active:scale-90 transition-transform"></i>
+                        <span class="text-[8px] font-bold whitespace-nowrap scale-90 origin-center">ホーム</span>
+                    </button>
+
+                    <!-- 2. MY Collection -->
+                    <button onclick="showPage('collection')" id="nav-collection"
+                        class="nav-item flex flex-col items-center justify-end h-full pb-0.5 group">
+                        <i
+                            class="fa-solid fa-layer-group text-lg mb-0.5 group-active:scale-90 transition-transform"></i>
+                        <span class="text-[8px] font-bold whitespace-nowrap scale-90 origin-center">MYコレクション</span>
+                    </button>
+
+                    <!-- 3. Center Action Button (Capsule Style) -->
+                    <div class="flex items-center justify-center h-full relative">
+                        <!-- Pulse Animation Ring -->
+                        <div class="absolute -top-5 w-12 h-12 rounded-full bg-sky-200/50 animate-soft-ping z-0"></div>
+
+                        <!-- Curved Text SVG -->
+                        <div
+                            class="absolute -top-[3.25rem] left-1/2 transform -translate-x-1/2 w-24 h-24 pointer-events-none z-20">
+                            <svg viewBox="0 0 120 60" width="100%" height="100%">
+                                <defs>
+                                    <path id="textCurve" d="M 10,50 A 50,50 0 0 1 110,50" fill="transparent" />
+                                </defs>
+                                <text width="100%">
+                                    <textPath xlink:href="#textCurve" startOffset="50%" text-anchor="middle"
+                                        class="fill-sky-500 text-[10px] font-bold tracking-widest"
+                                        style="font-size: 10px; font-family: 'Zen Maru Gothic', sans-serif;">
+                                        カプセルをつくる
+                                    </textPath>
+                                </text>
+                            </svg>
+                        </div>
+
+                        <!-- Main Button -->
+                        <button onclick="renderCreationModeSelector()"
+                            class="absolute -top-5 w-12 h-12 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-sky-400/40 transform transition hover:scale-105 active:scale-95 border-[3px] border-white z-10 overflow-visible">
+                            <i class="fa-solid fa-plus text-xl drop-shadow-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- 4. Friends -->
+                    <button onclick="showPage('friends')" id="nav-friends"
+                        class="nav-item flex flex-col items-center justify-end h-full pb-0.5 group">
+                        <i class="fa-solid fa-user-group text-lg mb-0.5 group-active:scale-90 transition-transform"></i>
+                        <span class="text-[8px] font-bold whitespace-nowrap scale-90 origin-center">友達</span>
+                    </button>
+
+                    <!-- 5. My Page -->
+                    <button onclick="showPage('mypage')" id="nav-mypage"
+                        class="nav-item flex flex-col items-center justify-end h-full pb-0.5 group">
+                        <i class="fa-solid fa-box-open text-lg mb-0.5 group-active:scale-90 transition-transform"></i>
+                        <span class="text-[8px] font-bold whitespace-nowrap scale-90 origin-center">フラッシュ</span>
+                    </button>
+
+                </div>
+            </nav>
+
+            <!-- Locked/Info Modal Overlay -->
+            <div id="modalOverlay"
+                class="absolute inset-0 bg-black/30 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm rounded-[2.2rem] transition-opacity duration-300">
+                <div id="modalContent"
+                    class="w-full glass-panel bg-white/80 rounded-3xl p-5 shadow-2xl transform transition-all scale-95 opacity-0 text-center">
+                    <!-- Modal Inner -->
+                </div>
+            </div>
+
+            <!-- Reveal Overlay -->
+            <div id="revealOverlay" class="reveal-overlay flex flex-col items-center justify-center rounded-[2.2rem]">
+                <canvas id="confettiCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+
+                <div id="revealContent"
+                    class="relative z-10 w-full h-full flex flex-col justify-start px-6 opacity-0 translate-y-4 transition-all duration-1000 overflow-y-auto no-scrollbar pt-10 pb-24">
+                    <p
+                        class="text-[10px] text-sky-500 font-bold tracking-[0.2em] mb-4 uppercase animate-fade-up text-center shrink-0">
+                        Time Capsule Opened</p>
+
+                    <!-- Photo Card (Separated) -->
+                    <div class="relative w-full aspect-[4/5] rounded-3xl shadow-lg border-[4px] border-white bg-white mb-6 group animate-fade-up shrink-0"
+                        style="animation-delay: 0.2s;">
+                        <div id="revealPhotoContainer"
+                            class="absolute inset-0 w-full h-full bg-slate-100 overflow-hidden rounded-[20px]"
+                            onclick="toggleRevealImage()">
+                            <!-- Photos will fall in here -->
+                        </div>
+
+                        <!-- Tags & Indicator inside Photo -->
+                        <div id="revealTags" class="absolute top-4 left-4 flex flex-wrap gap-1 pointer-events-none">
+                        </div>
+
+                        <!-- List View Toggle Button -->
+                        <button onclick="toggleRevealMode(event)" id="revealToggleBtn"
+                            class="absolute top-3 right-3 z-30 w-8 h-8 bg-black/40 text-white rounded-full backdrop-blur-md flex items-center justify-center border border-white/20 active:scale-90 transition">
+                            <i class="fa-solid fa-grip text-xs"></i>
+                        </button>
+
+                        <div id="revealIndicator"
+                            class="absolute top-4 right-4 bg-black/40 text-white px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md hidden pointer-events-none border border-white/20">
+                            <i class="fa-solid fa-images mr-1"></i><span id="revealCount"></span>
+                        </div>
+                    </div>
+
+                    <!-- Message Card (Separated) -->
+                    <div class="w-full bg-white/90 backdrop-blur-md rounded-2xl p-5 shadow-sm mb-4 border border-white/50 text-left animate-fade-up shrink-0"
+                        style="animation-delay: 0.3s;">
+                        <h2 id="revealTitle" class="text-slate-700 font-bold text-lg drop-shadow-sm mb-2 leading-tight">
+                        </h2>
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                            <p id="revealHashtag" class="text-sky-500 text-xs font-bold"></p>
+                            <div class="text-slate-400 text-[10px] font-bold font-['Poppins']" id="revealDate"></div>
+                        </div>
+                        <p id="revealMessage"
+                            class="text-slate-600 text-xs leading-relaxed font-medium bg-slate-50 p-3 rounded-xl"></p>
+                    </div>
+
+                    <button onclick="startNfcAnimation()"
+                        class="w-full bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold shadow-lg hover:bg-slate-700 transition flex items-center justify-center gap-2 mb-3 border border-slate-700">
+                        <i class="fa-solid fa-nfc-symbol"></i> NFCカード出力
+                    </button>
+
+                    <div class="flex gap-3 w-full animate-fade-up" style="animation-delay: 0.4s;">
+                        <a id="revealDownload" href="#" download
+                            class="flex-1 bg-white/90 text-sky-600 py-3.5 rounded-2xl text-xs font-bold shadow-lg hover:bg-white flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-download"></i> 保存
+                        </a>
+                        <button onclick="closeReveal()"
+                            class="flex-1 bg-slate-800 text-white py-3.5 rounded-2xl text-xs font-bold shadow-lg hover:bg-slate-700 transition">
+                            閉じる
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flash Layer -->
+            <div id="flashLayer" class="flash-white rounded-[2.2rem]"></div>
+
+            <!-- Home Indicator (Visible only in App) -->
+            <div id="homeIndicator" onclick="showPage('os-home')"
+                class="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-slate-400/30 rounded-full z-[60] cursor-pointer hover:bg-slate-500/50 transition-all hidden backdrop-blur-sm">
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <script>
+        // const apiKey = ""; // API key used to be here
+        // Mock Mode Active
+
+        // --- Confetti Logic ---
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let animationId;
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 5 + 2;
+                this.speedY = Math.random() * 2 + 1.5;
+                this.speedX = (Math.random() - 0.5) * 2;
+                // Pop Pastel Colors
+                this.color = ['#fda4af', '#fdba74', '#fde047', '#86efac', '#7dd3fc', '#c4b5fd'][Math.floor(Math.random() * 6)];
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 5;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.rotation += this.rotationSpeed;
+                if (this.y > canvas.height) this.y = -10;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        function startConfetti() {
+            resizeCanvas();
+            particles = Array.from({ length: 80 }, () => new Particle());
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                animationId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function stopConfetti() {
+            cancelAnimationFrame(animationId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // --- Core App Logic ---
+        let nfcEnabled = false;
+
+        function toggleNFC() {
+            nfcEnabled = !nfcEnabled;
+            const btn = document.getElementById('nfcToggleBtn');
+            const knob = document.getElementById('nfcToggleKnob');
+
+            if (nfcEnabled) {
+                btn.className = "w-12 h-7 rounded-full bg-sky-500 relative transition-colors duration-300";
+                knob.style.transform = "translateX(20px)";
+                showToast("NFC発行をONにしました", false);
+            } else {
+                btn.className = "w-12 h-7 rounded-full bg-slate-200 relative transition-colors duration-300";
+                knob.style.transform = "translateX(0)";
+            }
+        }
+
+        function updateStatusBarClock() {
+            const now = new Date();
+            const hours = now.getHours().toString();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('statusBarTime').textContent = `${hours}:${minutes}`;
+        }
+        setInterval(updateStatusBarClock, 1000);
+        updateStatusBarClock();
+
+        let capsules = [];
+        let currentTab = 'unlocked';
+        let currentPage = 'home';
+        let selectedTags = [];
+        let pendingCapsuleData = null;
+        let draftCapsule = {}; // Temporary storage for creation flow
+        let currentImages = [];
+        let activeImageIndex = 0;
+        let revealImageIndex = 0;
+        let activeRevealCapsule = null;
+        let selectedThemeId = 'theme-yellow';
+        let currentConditionTab = 'time';
+        let currentHomeView = 'slider'; // 'slider' or 'list'
+        let creationMode = 'solo'; // 'solo' or 'group'
+
+        // Pop colors for capsules (Updated with hex color for glass effect)
+        const themes = [
+            { id: 'theme-yellow', name: 'レモン', color: '#fef08a', bg: 'linear-gradient(to bottom, #fef08a 50%, #ffffff 50%)', shadow: 'rgba(250, 204, 21, 0.3)' },
+            { id: 'theme-blue', name: 'ソーダ', color: '#7dd3fc', bg: 'linear-gradient(to bottom, #7dd3fc 50%, #ffffff 50%)', shadow: 'rgba(56, 189, 248, 0.3)' },
+            { id: 'theme-pink', name: 'ピーチ', color: '#fca5a5', bg: 'linear-gradient(to bottom, #fca5a5 50%, #ffffff 50%)', shadow: 'rgba(251, 113, 133, 0.3)' },
+            { id: 'theme-green', name: 'ミント', color: '#86efac', bg: 'linear-gradient(to bottom, #86efac 50%, #ffffff 50%)', shadow: 'rgba(74, 222, 128, 0.3)' }
+        ];
+
+        const emotionTags = [
+            { id: 'fun', label: '楽しい', icon: 'fa-face-laugh-beam', style: 'bg-white/60 text-orange-500 border-orange-200', active: 'bg-orange-400 text-white shadow-lg shadow-orange-200' },
+            { id: 'satisfied', label: '満足', icon: 'fa-face-smile', style: 'bg-white/60 text-green-500 border-green-200', active: 'bg-green-400 text-white shadow-lg shadow-green-200' },
+            { id: 'calm', label: '落ち着き', icon: 'fa-mug-hot', style: 'bg-white/60 text-teal-500 border-teal-200', active: 'bg-teal-400 text-white shadow-lg shadow-teal-200' },
+            { id: 'hope', label: '期待', icon: 'fa-wand-magic-sparkles', style: 'bg-white/60 text-pink-500 border-pink-200', active: 'bg-pink-400 text-white shadow-lg shadow-pink-200' },
+            { id: 'surprise', label: '驚き', icon: 'fa-bolt', style: 'bg-white/60 text-yellow-500 border-yellow-200', active: 'bg-yellow-400 text-white shadow-lg shadow-yellow-200' },
+            { id: 'confused', label: '混乱', icon: 'fa-circle-question', style: 'bg-white/60 text-purple-500 border-purple-200', active: 'bg-purple-400 text-white shadow-lg shadow-purple-200' },
+            { id: 'anxious', label: '不安', icon: 'fa-face-grimace', style: 'bg-white/60 text-gray-500 border-gray-200', active: 'bg-gray-400 text-white shadow-lg shadow-gray-200' },
+            { id: 'sad', label: '悲しみ', icon: 'fa-cloud-rain', style: 'bg-white/60 text-blue-500 border-blue-200', active: 'bg-blue-400 text-white shadow-lg shadow-blue-200' },
+            { id: 'angry', label: '怒り', icon: 'fa-fire', style: 'bg-white/60 text-red-500 border-red-200', active: 'bg-red-400 text-white shadow-lg shadow-red-200' },
+            { id: 'disgust', label: '嫌悪感', icon: 'fa-face-tired', style: 'bg-white/60 text-lime-600 border-lime-200', active: 'bg-lime-500 text-white shadow-lg shadow-lime-200' },
+            { id: 'fear', label: '恐怖', icon: 'fa-ghost', style: 'bg-white/60 text-indigo-500 border-indigo-200', active: 'bg-indigo-400 text-white shadow-lg shadow-indigo-200' }
+        ];
+
+        // --- Unlock Notification System ---
+        let notifiedCapsules = []; // Track notified IDs in this session
+
+        function checkCapsuleUnlock() {
+            const now = new Date();
+            const newlyUnlocked = capsules.filter(c =>
+                !c.isOpened &&
+                new Date(c.unlockDate) <= now &&
+                !notifiedCapsules.includes(c.id)
+            );
+
+            newlyUnlocked.forEach(cap => {
+                showUnlockBanner(cap);
+                notifiedCapsules.push(cap.id);
+            });
+        }
+
+        function showUnlockBanner(capsule) {
+            const app = document.querySelector('.relative.flex.flex-col'); // Main app container
+            if (!app) return;
+
+            const banner = document.createElement('div');
+            banner.className = "absolute top-4 left-4 right-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-sky-100 p-4 z-[60] animate-fade-down flex items-center gap-3 cursor-pointer transform transition active:scale-95";
+            banner.onclick = () => {
+                banner.remove();
+                // Navigate to home to see the unlocked capsule (or open specific view if implemented)
+                showPage('home');
+            };
+
+            banner.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-500 relative">
+                    <i class="fa-solid fa-box-open text-lg"></i>
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-rose-500 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-xs font-bold text-sky-500 mb-0.5">カプセルが届きました！</h4>
+                    <p class="text-xs font-bold text-slate-700 line-clamp-1">${capsule.title}</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            `;
+
+            app.appendChild(banner);
+
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                if (banner.parentElement) {
+                    banner.style.transition = 'all 0.5s ease-out';
+                    banner.style.opacity = '0';
+                    banner.style.transform = 'translateY(-20px)';
+                    setTimeout(() => banner.remove(), 500);
+                }
+            }, 6000);
+        }
+
+        function startUnlockPoller() {
+            // Check immediately on start
+            setTimeout(checkCapsuleUnlock, 3000);
+            // Then every 30 seconds
+            setInterval(checkCapsuleUnlock, 30000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Script Loaded - Custom Log");
+            loadCapsules();
+            showPage('os-home'); // Start at OS Home
+            setInterval(updateTimers, 1000);
+            startUnlockPoller(); // Start checking for unlocks
+
+            // Global Home Bar Listener
+            const frame = document.getElementById('app-container');
+            if (frame) {
+                const homeBar = document.createElement('div');
+                homeBar.className = "absolute bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1.5 bg-black/20 rounded-full z-[100] cursor-pointer hover:bg-black/30 transition-colors backdrop-blur-sm";
+                homeBar.onclick = () => showPage('os-home');
+                frame.appendChild(homeBar);
+            }
+        });
+
+        function resetApp() {
+            if (confirm('全てのデータをリセットしますか？\n（これまでのカプセルは全て消えます）')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        // --- Functions defined BEFORE use ---
+
+        function loadCapsules() {
+            const data = localStorage.getItem('timeCapsules_v5');
+            if (data) capsules = JSON.parse(data);
+        }
+
+        function saveCapsules() {
+            try { localStorage.setItem('timeCapsules_v5', JSON.stringify(capsules)); } catch (e) { }
+        }
+
+        function showPage(pageId) {
+            currentPage = pageId;
+            const main = document.getElementById('mainContent');
+            const topTabs = document.getElementById('topTabs');
+            const bottomNav = document.getElementById('bottomNav');
+
+            ['nav-home', 'nav-collection', 'nav-friends', 'nav-mypage'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('active');
+            });
+
+            topTabs.style.display = 'block';
+            bottomNav.style.transform = '';
+            bottomNav.classList.remove('translate-y-full');
+            main.className = 'flex-1 overflow-y-auto overflow-x-hidden pt-4 pb-24 px-0 scroll-smooth no-scrollbar relative transition-layout';
+
+            if (pageId === 'create') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'z-30');
+            }
+            else if (pageId === 'collection') {
+                topTabs.style.display = 'none';
+                if (document.getElementById('nav-collection')) document.getElementById('nav-collection').classList.add('active');
+            }
+            else if (pageId === 'friends') {
+                topTabs.style.display = 'none';
+                if (document.getElementById('nav-friends')) document.getElementById('nav-friends').classList.add('active');
+            }
+            else if (pageId === 'mypage') {
+                topTabs.style.display = 'none';
+                if (document.getElementById('nav-mypage')) document.getElementById('nav-mypage').classList.add('active');
+
+                // Full Screen Layout Adjustments
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-20'); // Remove top padding, reduce bottom padding
+            }
+            else if (pageId === 'seal-swipe') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'overflow-hidden', 'z-30');
+            }
+            else if (pageId === 'condition') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'z-30');
+            }
+            else if (pageId === 'theme') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'z-30');
+            }
+            else if (pageId === 'os-home') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'z-40'); // High z-index
+            }
+            else if (pageId === 'title') {
+                topTabs.style.display = 'none';
+                bottomNav.style.transform = 'translateY(200%)';
+                main.classList.remove('pt-4', 'pb-24');
+                main.classList.add('pt-0', 'pb-0', 'z-50', 'bg-white'); // Highest z-index, white bg
+            }
+            else {
+                if (pageId === 'home') document.getElementById('nav-home').classList.add('active');
+                if (pageId === 'collection') document.getElementById('nav-collection').classList.add('active');
+                if (pageId === 'friends') document.getElementById('nav-friends').classList.add('active');
+                if (pageId === 'mypage') document.getElementById('nav-mypage').classList.add('active');
+            }
+
+            // --- Home Indicator Visibility ---
+            const homeInd = document.getElementById('homeIndicator');
+            if (homeInd) {
+                if (pageId === 'os-home' || pageId === 'title') {
+                    homeInd.classList.add('hidden');
+                } else {
+                    homeInd.classList.remove('hidden');
+                }
+            }
+
+            main.style.opacity = '0';
+            setTimeout(() => {
+                if (pageId === 'home') renderHome(main);
+                else if (pageId === 'collection') renderCollection(main);
+                else if (pageId === 'friends') renderFriends(main);
+                else if (pageId === 'mypage') renderMyPage(main);
+                else if (pageId === 'create') renderCreate(main);
+                else if (pageId === 'condition') renderConditionSelector(main);
+                else if (pageId === 'theme') renderThemeSelector(main);
+                else if (pageId === 'condition') renderConditionSelector(main);
+                else if (pageId === 'theme') renderThemeSelector(main);
+                else if (pageId === 'seal-swipe') renderSealSwipe(main);
+                else if (pageId === 'os-home') renderOSHome(main);
+                else if (pageId === 'title') renderTitleScreen(main);
+                main.style.opacity = '1';
+            }, 150);
+        }
+
+        // --- Creation Flow ---
+
+        function renderCreationModeSelector() {
+            const modal = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+
+            content.innerHTML = `
+                <h3 class="font-bold text-lg text-slate-700 mb-6">カプセルを作成</h3>
+                <div class="flex flex-col gap-4">
+                    <button onclick="startCreation('solo')" class="w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white p-4 rounded-2xl shadow-lg flex items-center gap-4 transition transform active:scale-95 hover:shadow-xl">
+                        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">自分用に作成</div>
+                            <div class="text-[10px] opacity-90">思い出や未来の自分へ</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ml-auto"></i>
+                    </button>
+
+                    <button onclick="startCreation('group')" class="w-full bg-gradient-to-r from-pink-400 to-rose-500 text-white p-4 rounded-2xl shadow-lg flex items-center gap-4 transition transform active:scale-95 hover:shadow-xl">
+                        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-user-group"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-sm">友達と作成</div>
+                            <div class="text-[10px] opacity-90">みんなでタイムカプセル</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right ml-auto"></i>
+                    </button>
+                    
+                    <button onclick="closeModal()" class="mt-2 text-slate-400 text-xs py-2">キャンセル</button>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.firstElementChild.classList.remove('opacity-0', 'scale-95');
+            }, 10);
+        }
+
+        function startCreation(mode) {
+            creationMode = mode;
+            closeModal();
+            setTimeout(() => {
+                showPage('create');
+            }, 300);
+        }
+
+
+
+        function renderMockFriendIcon(name, isSelected) {
+            return `
+            <div class="flex flex-col items-center gap-1 min-w-[50px] cursor-pointer group">
+                <div class="w-12 h-12 rounded-full border-2 ${isSelected ? 'border-sky-400 bg-sky-50' : 'border-transparent bg-white'} shadow-sm flex items-center justify-center transition group-hover:scale-105 relative overflow-hidden">
+                     <i class="fa-solid fa-user text-slate-300 text-xl"></i>
+                     ${isSelected ? '<div class="absolute inset-0 border-4 border-sky-400 rounded-full opacity-30"></div>' : ''}
+                </div>
+                <span class="text-[9px] ${isSelected ? 'text-sky-500 font-bold' : 'text-slate-400'}">${name}</span>
+            </div>
+            `;
+        }
+
+        function checkFormValidity() {
+            const title = document.getElementById('capsuleTitle')?.value;
+            const btn = document.getElementById('sealBtn');
+            if (!btn) return;
+
+            if (title && currentImages.length > 0) {
+                btn.disabled = false;
+                btn.className = "w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold py-2 rounded-2xl shadow-lg hover:shadow-sky-200 active:scale-95 transition-all duration-300 text-sm flex items-center justify-center gap-2";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-slate-200 text-slate-400 font-bold py-2 rounded-2xl shadow-none transition-all duration-300 text-sm flex items-center justify-center gap-2 cursor-not-allowed";
+            }
+        }
+
+        function goToConditionSelector() {
+            const title = document.getElementById('capsuleTitle').value;
+            const hashtagStr = document.getElementById('capsuleHashtag').value; // 追加
+            const message = document.getElementById('capsuleMessage').value;
+
+            if (currentImages.length === 0) return showToast("写真を選んでね", "error");
+            if (!title) return showToast("タイトルを入力してね", "error");
+
+            // Split hashtags by space (full or half width)
+            const hashtags = hashtagStr.split(/[\s　]+/).filter(t => t.length > 0);
+
+            draftCapsule = {
+                title: title,
+                hashtag: hashtagStr, // Keep string for backward compat
+                hashtags: hashtags,  // Add array for search/tags
+                message: message,
+                images: [...currentImages],
+                image: currentImages[0],
+                theme: selectedThemeId,
+                tags: selectedTags
+            };
+            showPage('condition');
+        }
+
+        function selectTheme(id) {
+            selectedThemeId = id;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                if (btn.dataset.id === id) {
+                    btn.style.transform = "scale(1.2)";
+                    btn.style.boxShadow = "0 0 0 3px #38bdf8";
+                } else {
+                    btn.style.transform = "scale(1)";
+                    btn.style.boxShadow = "none";
+                }
+            });
+        }
+
+        function toggleEmotion(id) {
+            const btn = document.getElementById(`tag-${id}`);
+            const tagData = emotionTags.find(t => t.id === id);
+
+            if (selectedTags.includes(id)) {
+                selectedTags = selectedTags.filter(t => t !== id);
+                btn.className = `emotion-tag w-full py-2.5 rounded-xl border border-dashed flex flex-col items-center justify-center gap-1 ${tagData.style} hover:opacity-80`;
+            } else {
+                selectedTags.push(id);
+                btn.className = `emotion-tag w-full py-2.5 rounded-xl border-none shadow-md flex flex-col items-center justify-center gap-1 selected ${tagData.active}`;
+            }
+        }
+
+        // --- Multi-Image Logic ---
+
+        async function previewImages(input) {
+            const files = input.files;
+            if (!files || files.length === 0) return;
+
+            const startIdx = currentImages.length;
+
+            const promises = Array.from(files).map(file => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        resizeImage(e.target.result, 600, (resizedBase64) => {
+                            resolve(resizedBase64);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            const newImages = await Promise.all(promises);
+            currentImages = [...currentImages, ...newImages];
+
+            if (currentImages.length > 0) {
+                activeImageIndex = startIdx;
+            }
+
+            updateCreateView();
+            checkFormValidity();
+            input.value = '';
+        }
+
+        function updateCreateView() {
+            const mainContainer = document.getElementById('mainPreviewContainer');
+            const indicators = document.getElementById('imageIndicators');
+            const strip = document.getElementById('thumbnailStrip');
+
+            if (currentImages.length === 0) {
+                // Empty State
+                mainContainer.className = "w-full aspect-[3/4] bg-white/50 rounded-3xl border-2 border-dashed border-sky-100 flex flex-col items-center justify-center relative overflow-hidden transition-all shadow-inner mb-3";
+                mainContainer.innerHTML = `
+                    <div onclick="document.getElementById('imageInput').click()" class="cursor-pointer flex flex-col items-center justify-center text-sky-300 hover:text-sky-500 transition w-full h-full">
+                        <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3 shadow-md border border-sky-50">
+                            <i class="fa-solid fa-camera text-2xl"></i>
+                        </div>
+                        <span class="text-[10px] font-bold">写真をタップして追加</span>
+                    </div>`;
+                indicators.innerHTML = '';
+                strip.classList.add('hidden');
+                return;
+            }
+
+            strip.classList.remove('hidden');
+
+            // 1. Render Main Preview
+            const activeSrc = currentImages[activeImageIndex];
+            mainContainer.className = "w-full aspect-[3/4] bg-black rounded-3xl flex flex-col items-center justify-center relative overflow-hidden shadow-xl border-4 border-white group mb-3 cursor-grab active:cursor-grabbing";
+            mainContainer.innerHTML = `
+                <img src="${activeSrc}" class="w-full h-full object-contain pointer-events-none select-none">
+                <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition duration-300 pointer-events-none"></div>
+                <button onclick="removeImage(${activeImageIndex})" class="absolute top-3 right-3 w-8 h-8 bg-white/80 text-red-500 rounded-full flex items-center justify-center backdrop-blur-md hover:bg-white transition shadow-md z-10">
+                    <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+            `;
+
+            setTimeout(attachPreviewSwipeListeners, 0);
+
+            let indicatorHtml = '';
+            for (let i = 0; i < currentImages.length; i++) {
+                const isActive = i === activeImageIndex;
+                indicatorHtml += `<div class="w-1.5 h-1.5 rounded-full transition-all duration-300 ${isActive ? 'bg-sky-400 w-3' : 'bg-slate-300'}"></div>`;
+            }
+            indicators.innerHTML = indicatorHtml;
+
+            let stripHtml = '';
+            currentImages.forEach((src, idx) => {
+                const isActive = idx === activeImageIndex;
+                stripHtml += `
+                    <div onclick="setActiveImage(${idx})" class="flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden cursor-pointer transition-all border-2 ${isActive ? 'border-sky-400 opacity-100 scale-105' : 'border-transparent opacity-60 hover:opacity-80'} snap-start relative bg-white shadow-sm">
+                        <img src="${src}" class="w-full h-full object-cover">
+                    </div>
+                `;
+            });
+
+            if (currentImages.length < 5) {
+                stripHtml += `
+                    <div onclick="document.getElementById('imageInput').click()" class="flex-shrink-0 w-14 h-14 rounded-xl border-2 border-dashed border-sky-200 flex items-center justify-center cursor-pointer hover:bg-white transition text-sky-300 snap-start bg-white/30">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </div>
+                `;
+            }
+            strip.innerHTML = stripHtml;
+        }
+
+        function setActiveImage(index) {
+            activeImageIndex = index;
+            updateCreateView();
+        }
+
+        function removeImage(index) {
+            currentImages.splice(index, 1);
+            if (activeImageIndex >= currentImages.length) {
+                activeImageIndex = Math.max(0, currentImages.length - 1);
+            }
+            updateCreateView();
+            checkFormValidity();
+        }
+
+        function resizeImage(base64Str, maxWidth, callback) {
+            const img = new Image();
+            img.src = base64Str;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                callback(canvas.toDataURL('image/jpeg', 0.8));
+            };
+        }
+
+        function attachPreviewSwipeListeners() {
+            const container = document.getElementById('mainPreviewContainer');
+            if (!container || currentImages.length <= 1) return;
+
+            let startX = 0;
+            let isDragging = false;
+            container.ondragstart = (e) => e.preventDefault();
+
+            const handleStart = (x) => {
+                startX = x;
+                isDragging = true;
+                container.style.cursor = 'grabbing';
+            };
+
+            const handleEnd = (x) => {
+                if (!isDragging) return;
+                isDragging = false;
+                container.style.cursor = 'grab';
+                const diff = x - startX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        if (activeImageIndex > 0) { activeImageIndex--; updateCreateView(); }
+                    } else {
+                        if (activeImageIndex < currentImages.length - 1) { activeImageIndex++; updateCreateView(); }
+                    }
+                }
+            };
+
+            container.onmousedown = (e) => handleStart(e.clientX);
+            container.onmouseup = (e) => handleEnd(e.clientX);
+            container.onmouseleave = () => { if (isDragging) { isDragging = false; container.style.cursor = 'grab'; } };
+            container.ontouchstart = (e) => handleStart(e.touches[0].clientX);
+            container.ontouchend = (e) => handleEnd(e.changedTouches[0].clientX);
+        }
+
+        // --- Render Functions ---
+
+        function renderCreate(container) {
+            selectedTags = [];
+            currentImages = []; // Reset images
+            activeImageIndex = 0;
+
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-sky-50/50 relative animate-pop">
+                    <!-- Header -->
+                    <div class="pt-10 pb-2 px-3 flex items-center justify-between bg-white/60 backdrop-blur-md z-10 border-b border-white/50 shadow-sm">
+                        <button onclick="showPage('home')" class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition shadow-sm">
+                            <i class="fa-solid fa-xmark text-sm"></i>
+                        </button>
+                        </button>
+                        <h2 class="font-bold text-slate-600 text-xs tracking-widest">${creationMode === 'group' ? '友達と作成' : 'カプセル作成'}</h2>
+                        <div class="w-8"></div>
+                    </div>
+
+                    <!-- Body -->
+                    <div id="createScrollContainer" onscroll="checkScrollTop()" class="flex-1 overflow-y-auto no-scrollbar px-3 pt-4 pb-28 scroll-smooth">
+                        
+                        ${creationMode === 'group' ? `
+                        <!-- Friend Selector (Mock) -->
+                        <div class="mb-6 animate-fade-up">
+                            <label class="block text-[10px] font-bold text-slate-400 mb-2 pl-2">共有する友達</label>
+                            <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                                <div class="flex flex-col items-center gap-1 min-w-[50px]">
+                                    <div class="w-12 h-12 rounded-full bg-sky-100 border-2 border-dashed border-sky-300 flex items-center justify-center text-sky-400 cursor-pointer">
+                                        <i class="fa-solid fa-plus"></i>
+                                    </div>
+                                    <span class="text-[9px] text-slate-400">追加</span>
+                                </div>
+                                ${renderMockFriendIcon('Mai', true)}
+                                ${renderMockFriendIcon('Kaito', false)}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Photo Selection -->
+                        <div class="mb-3">
+                            <input type="file" id="imageInput" accept="image/*" class="hidden" multiple onchange="previewImages(this)">
+                            
+                            <!-- Main Preview -->
+                            <div id="mainPreviewContainer" class="w-full aspect-[3/4] bg-white/50 rounded-3xl border-2 border-dashed border-sky-100 flex flex-col items-center justify-center relative overflow-hidden transition-all shadow-inner mb-3">
+                                <div onclick="document.getElementById('imageInput').click()" class="cursor-pointer flex flex-col items-center justify-center text-sky-300 hover:text-sky-500 transition w-full h-full">
+                                    <div class="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3 shadow-md border border-sky-50">
+                                        <i class="fa-solid fa-camera text-2xl"></i>
+                                    </div>
+                                    <span class="text-[10px] font-bold">写真をタップして追加</span>
+                                </div>
+                            </div>
+
+                            <!-- Indicators -->
+                            <div id="imageIndicators" class="flex justify-center gap-1.5 mb-4 min-h-[6px]"></div>
+
+                            <!-- Thumbnails -->
+                            <div id="thumbnailStrip" class="flex overflow-x-auto gap-2 pb-2 no-scrollbar snap-x min-h-[60px] hidden"></div>
+                            
+
+                        </div>
+
+                        <!-- Form -->
+                        <div class="space-y-5 glass-panel p-5 rounded-3xl bg-white/60">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-1.5">タイトル</label>
+                                <input type="text" id="capsuleTitle" placeholder="思い出のタイトル" class="w-full bg-white border border-slate-100 rounded-xl px-4 py-3.5 text-xs text-slate-700 focus:ring-2 focus:ring-sky-200 outline-none transition shadow-sm font-medium" oninput="checkFormValidity()">
+                            </div>
+                            
+                            <!-- New Hashtag/Comment Input -->
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-1.5">#コメント</label>
+                                <input type="text" id="capsuleHashtag" placeholder="#楽しい #思い出" class="w-full bg-white border border-slate-100 rounded-xl px-4 py-3.5 text-xs text-slate-700 focus:ring-2 focus:ring-sky-200 outline-none transition shadow-sm font-medium">
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-1.5">未来へのメッセージ</label>
+                                <textarea id="capsuleMessage" placeholder="未来の自分へ..." class="w-full bg-white border border-slate-100 rounded-xl px-4 py-3 text-xs text-slate-700 focus:ring-2 focus:ring-sky-200 outline-none transition shadow-sm h-24 resize-none leading-relaxed"></textarea>
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 ml-1 block mb-2">今のキモチ</label>
+                                <div class="grid grid-cols-3 gap-2.5">
+                                    ${emotionTags.map(tag => `
+                                        <button onclick="toggleEmotion('${tag.id}')" id="tag-${tag.id}" 
+                                                class="emotion-tag w-full py-3 rounded-xl flex flex-col items-center justify-center gap-1 ${tag.style} hover:opacity-80 shadow-sm">
+                                            <i class="fa-solid ${tag.icon} text-base mb-0.5"></i>
+                                            <span class="text-[9px] font-bold">${tag.label}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            
+                            <!-- NFC Issue Toggle -->
+                            <div class="glass-panel p-4 rounded-2xl flex items-center justify-between border border-white/50 shadow-sm mt-3 animate-fade-up" style="animation-delay: 0.1s;">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                        <i class="fa-solid fa-nfc-symbol text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xs font-bold text-slate-700">NFCカードを発行</h3>
+                                        <p class="text-[9px] text-slate-400">リアルなカードでも思い出を残します</p>
+                                    </div>
+                                </div>
+                                <button onclick="toggleNFC()" id="nfcToggleBtn" class="w-12 h-7 rounded-full bg-slate-200 relative transition-colors duration-300">
+                                    <div id="nfcToggleKnob" class="absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300"></div>
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Scroll Top Button -->
+                    <button id="scrollTopBtn" onclick="scrollToTop()" class="absolute bottom-24 right-5 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-100 text-sky-500 flex items-center justify-center transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-20 hover:bg-sky-50 hover:scale-110">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+
+                    <!-- Footer Action -->
+                    <div class="absolute bottom-0 left-0 w-full p-4 glass-panel border-x-0 border-b-0 z-20">
+                        <button id="sealBtn" onclick="goToConditionSelector()" disabled class="w-full bg-slate-200 text-slate-400 font-bold py-2 rounded-2xl shadow-none transition-all duration-300 text-sm flex items-center justify-center gap-2 cursor-not-allowed">
+                            <span>条件を設定する</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>`;
+            setTimeout(checkFormValidity, 100);
+        }
+
+        function checkScrollTop() {
+            const container = document.getElementById('createScrollContainer');
+            const btn = document.getElementById('scrollTopBtn');
+            if (!container || !btn) return;
+
+            if (container.scrollTop > 150) {
+                btn.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+                btn.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            } else {
+                btn.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                btn.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            }
+        }
+
+        function scrollToTop() {
+            const container = document.getElementById('createScrollContainer');
+            if (container) {
+                container.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function switchConditionTab(tab) {
+            currentConditionTab = tab;
+            renderConditionContent();
+
+            document.querySelectorAll('.cond-tab').forEach(el => {
+                if (el.dataset.tab === tab) {
+                    el.className = 'cond-tab flex-1 py-3 text-center text-xs font-bold text-white bg-sky-400 rounded-full shadow-md transition-all';
+                } else {
+                    el.className = 'cond-tab flex-1 py-3 text-center text-xs font-bold text-slate-400 hover:bg-slate-100 rounded-full transition-all';
+                }
+            });
+        }
+
+        function renderConditionSelector(container) {
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-sky-50/50 relative animate-pop">
+                    <!-- Header -->
+                    <div class="pt-10 pb-2 px-3 flex items-center justify-between bg-white/60 backdrop-blur-md z-10 border-b border-white/50 shadow-sm">
+                        <button onclick="showPage('create')" class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition shadow-sm">
+                            <i class="fa-solid fa-arrow-left text-sm"></i>
+                        </button>
+                        <h2 class="font-bold text-slate-600 text-xs tracking-widest">封印条件を設定</h2>
+                        <div class="w-8"></div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="px-3 mt-4">
+                        <div class="flex bg-white p-1 rounded-full shadow-sm border border-slate-100">
+                            <button onclick="switchConditionTab('time')" data-tab="time" class="cond-tab flex-1 py-3 text-center text-xs font-bold text-white bg-sky-400 rounded-full shadow-md transition-all">時間</button>
+                            <button onclick="switchConditionTab('event')" data-tab="event" class="cond-tab flex-1 py-3 text-center text-xs font-bold text-slate-400 hover:bg-slate-100 rounded-full transition-all">イベント</button>
+                            <button onclick="switchConditionTab('friend')" data-tab="friend" class="cond-tab flex-1 py-3 text-center text-xs font-bold text-slate-400 hover:bg-slate-100 rounded-full transition-all">友達</button>
+                            <button onclick="switchConditionTab('ai')" data-tab="ai" class="cond-tab flex-1 py-3 text-center text-xs font-bold text-slate-400 hover:bg-slate-100 rounded-full transition-all"><i class="fa-solid fa-wand-magic-sparkles"></i> AI</button>
+                        </div>
+                    </div>
+
+                    <!-- Content Area -->
+                    <div id="conditionContent" class="flex-1 overflow-y-auto no-scrollbar px-3 pt-6 pb-20">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            `;
+
+            switchConditionTab('time');
+        }
+
+        function renderConditionContent() {
+            const content = document.getElementById('conditionContent');
+            if (!content) return;
+
+            if (currentConditionTab === 'time') {
+                content.innerHTML = `
+                    <div class="space-y-6 animate-fade-up">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="setSealDate(calcDate(0,0,1))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">明日</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">1日後</div>
+                            </button>
+                            <button onclick="setSealDate(calcDate(0,1,0))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">来月</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">1ヶ月後</div>
+                            </button>
+                            <button onclick="setSealDate(calcDate(0,6,0))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">半年後</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">6ヶ月後</div>
+                            </button>
+                            <button onclick="setSealDate(calcDate(1,0,0))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">来年の今日</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">1年後</div>
+                            </button>
+                            <button onclick="setSealDate(calcDate(3,0,0))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">卒業・節目</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">3年後</div>
+                            </button>
+                            <button onclick="setSealDate(calcDate(10,0,0))" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition text-left group">
+                                <div class="text-xs text-slate-400 font-bold mb-1">未来の自分へ</div>
+                                <div class="text-sm font-bold text-slate-700 group-hover:text-sky-500">10年後</div>
+                            </button>
+                        </div>
+
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
+                            <label class="text-xs font-bold text-slate-400 block mb-2">カスタム日時指定</label>
+                            <input type="datetime-local" id="customDateInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-sky-200 outline-none font-mono">
+                            <button onclick="setSealDate(document.getElementById('customDateInput').value)" class="w-full mt-4 bg-slate-800 text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-700 transition">
+                                この日時で決定
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (currentConditionTab === 'event') {
+                content.innerHTML = `
+                    <div class="space-y-4 animate-fade-up">
+                        <button onclick="setSealDate(getNextEventDate(1, 1))" class="w-full bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-pink-300 hover:shadow-md transition flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-500 group-hover:scale-110 transition"><i class="fa-solid fa-cake-candles"></i></div>
+                            <div class="text-left">
+                                <div class="text-sm font-bold text-slate-700">お正月</div>
+                                <div class="text-[10px] text-slate-400">1月1日に開封</div>
+                            </div>
+                        </button>
+                        <button onclick="setSealDate(getNextEventDate(2, 14))" class="w-full bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-red-300 hover:shadow-md transition flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-500 group-hover:scale-110 transition"><i class="fa-solid fa-heart"></i></div>
+                            <div class="text-left">
+                                <div class="text-sm font-bold text-slate-700">バレンタイン</div>
+                                <div class="text-[10px] text-slate-400">2月14日に開封</div>
+                            </div>
+                        </button>
+                        <button onclick="setSealDate(getNextEventDate(3, 31))" class="w-full bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-sky-300 hover:shadow-md transition flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center text-sky-500 group-hover:scale-110 transition"><i class="fa-solid fa-graduation-cap"></i></div>
+                            <div class="text-left">
+                                <div class="text-sm font-bold text-slate-700">年度末・卒業</div>
+                                <div class="text-[10px] text-slate-400">3月31日に開封</div>
+                            </div>
+                        </button>
+                        <button onclick="setSealDate(getNextEventDate(12, 25))" class="w-full bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:border-green-300 hover:shadow-md transition flex items-center gap-4 group">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 group-hover:scale-110 transition"><i class="fa-solid fa-gift"></i></div>
+                            <div class="text-left">
+                                <div class="text-sm font-bold text-slate-700">クリスマス</div>
+                                <div class="text-[10px] text-slate-400">12月25日に開封</div>
+                            </div>
+                        </button>
+                    </div>
+                `;
+            } else if (currentConditionTab === 'friend') {
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-64 animate-fade-up text-center px-6">
+                        <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm border border-slate-100 relative">
+                            <i class="fa-solid fa-user-group text-3xl text-slate-300"></i>
+                            <div class="absolute -right-2 -bottom-2 w-10 h-10 bg-sky-100 rounded-full flex items-center justify-center border-2 border-white">
+                                <i class="fa-solid fa-link text-sky-500"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-slate-600 mb-2">友達と再会したら</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed mb-6">
+                            Bluetoothで友達を検知するか、<br>
+                            合言葉を入力することで開封できます。<br>
+                            (現在はモック機能です)
+                        </p>
+                        <button onclick="setSealDate(calcDate(0,1,0))" class="w-full bg-sky-500 text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-sky-600 transition">
+                            とりあえず1ヶ月後に設定
+                        </button>
+                    </div>
+                `;
+            } else if (currentConditionTab === 'ai') {
+                content.innerHTML = `
+                    <div class="flex flex-col items-center justify-center animate-fade-up px-4">
+                        <div class="w-full bg-white p-6 rounded-3xl shadow-sm border border-purple-100 text-center mb-6">
+                            <div class="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                                <i class="fa-solid fa-wand-magic-sparkles text-2xl text-purple-400"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-700 mb-2">AIにおまかせ</h3>
+                            <p class="text-[11px] text-slate-400 mb-4">
+                                写真の雰囲気やあなたの感情から、<br>
+                                最適な開封タイミングを提案します。
+                            </p>
+                            <button onclick="suggestDateByAI()" id="aiDateBtn" class="w-full py-3 rounded-xl text-xs font-bold text-white shadow-lg transition ai-gradient hover:opacity-90">
+                                提案してもらう
+                            </button>
+                        </div>
+                        
+                        <div id="aiSuggestionResult" class="w-full hidden">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function calcDate(addYears, addMonths, addDays) {
+            const date = new Date();
+            date.setFullYear(date.getFullYear() + addYears);
+            date.setMonth(date.getMonth() + addMonths);
+            date.setDate(date.getDate() + addDays);
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+            return date.toISOString().slice(0, 16);
+        }
+
+        function getNextEventDate(month, day) {
+            const now = new Date();
+            let year = now.getFullYear();
+            const date = new Date(year, month - 1, day);
+            if (date <= now) {
+                date.setFullYear(year + 1);
+            }
+            date.setHours(9, 0, 0, 0);
+            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+            return date.toISOString().slice(0, 16);
+        }
+
+        async function suggestDateByAI() {
+            try {
+                const btn = document.getElementById('aiDateBtn');
+                const resultArea = document.getElementById('aiSuggestionResult');
+
+                // Loading Mock
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 考え中...';
+                btn.disabled = true;
+
+                // Mock Data
+                const mockSuggestions = [
+                    { label: "1年後の今日", add: [1, 0, 0], reason: "今の気持ちを、1年後の自分と答え合わせしてみませんか？" },
+                    { label: "半年後の季節", add: [0, 6, 0], reason: "季節が巡って、空気が変わる頃にまた会えるように。" },
+                    { label: "来月の今日", add: [0, 1, 0], reason: "少しだけ未来の自分へ、忘れないうちに届けましょう。" },
+                    { label: "3年後の記念日", add: [3, 0, 0], reason: "長い時間を超えて届くメッセージは、きっと宝物になります。" },
+                    { label: "次の日曜日", add: [0, 0, 7], reason: "週末のリラックスした時間に、ふと読み返してほっこり。" }
+                ];
+
+                // Random Pick
+                const pick = mockSuggestions[Math.floor(Math.random() * mockSuggestions.length)];
+                const dateStr = calcDate(...pick.add); // Reuse existing calcDate
+
+                // Simulate Network Delay
+                setTimeout(() => {
+                    resultArea.innerHTML = `
+                        <div class="bg-purple-50 p-5 rounded-2xl border border-purple-100 text-left animate-fade-up">
+                            <div class="text-[10px] font-bold text-purple-400 mb-1">AIの提案 (Mock)</div>
+                            <div class="text-sm font-bold text-slate-700 mb-2">${new Date(dateStr).toLocaleDateString()}</div>
+                            <p class="text-xs text-slate-500 mb-4 bg-white p-3 rounded-xl">"${pick.reason}"</p>
+                            <button onclick="setSealDate('${dateStr}')" class="w-full bg-slate-800 text-white py-3 rounded-xl text-xs font-bold shadow-lg hover:bg-slate-700 transition">
+                                この日時で決定
+                            </button>
+                        </div>
+                    `;
+                    resultArea.classList.remove('hidden');
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 1500); // 1.5s delay
+            } catch (e) {
+                alert("Error in suggestDateByAI: " + e.message);
+                console.error(e);
+            }
+        }
+
+        // --- NEW: Theme Selector ---
+
+        function generateFloatingCards(count) {
+            let html = '';
+            const displayCount = Math.min(count, 10); // Cap at 10
+
+            // Pre-defined spread positions [top%, left%] to maximize coverage and minimize overlap
+            const basePositions = [
+                [50, 50], // Center
+                [30, 25], // Top-Left
+                [30, 75], // Top-Right
+                [70, 25], // Bottom-Left
+                [70, 75], // Bottom-Right
+                [20, 50], // Top-Center
+                [80, 50], // Bottom-Center
+                [50, 15], // Left-Center
+                [50, 85], // Right-Center
+                [40, 40]  // Inner Offset
+            ];
+
+            for (let i = 0; i < displayCount; i++) {
+                // Use preset position or fallback to random
+                const pos = basePositions[i] || [50 + (Math.random() * 40 - 20), 50 + (Math.random() * 40 - 20)];
+
+                // Add jitter
+                const topPos = pos[0] + (Math.random() * 10 - 5);
+                const leftPos = pos[1] + (Math.random() * 10 - 5);
+
+                // More random rotation
+                const rotate = Math.random() * 60 - 30; // -30 to 30 deg
+
+                const sizeClass = i === 0 ? 'w-14 h-18' : (i % 2 === 0 ? 'w-12 h-16' : 'w-10 h-14');
+                const zIndex = 20 - i; // Higher z-index base
+                const animDelay = i * 0.3;
+
+                html += `
+                    <div class="absolute bg-white shadow-md ${sizeClass} animate-float rounded-[2px] flex flex-col p-[3px] pb-[10px] overflow-hidden transform-gpu"
+                            style="top: ${topPos}%; left: ${leftPos}%; 
+                                transform: translate(-50%, -50%) rotate(${rotate}deg); 
+                                z-index: ${zIndex}; 
+                                animation: float-gentle ${4 + i * 0.5}s ease-in-out infinite;
+                                animation-delay: -${animDelay}s;">
+                        <div class="w-full h-full bg-slate-800 rounded-[1px] opacity-90 shadow-inner"></div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        function renderThemeSelector(container) {
+            // Prepare floating images HTML
+            const imgCount = (draftCapsule.images && draftCapsule.images.length > 0) ? draftCapsule.images.length : (draftCapsule.image ? 1 : 0);
+            let floatingImagesHtml = generateFloatingCards(imgCount);
+
+            container.innerHTML = `
+                <div class="flex flex-col h-full bg-sky-50/50 relative animate-pop">
+                    <!-- Header -->
+                    <div class="pt-10 pb-2 px-3 flex items-center justify-between bg-white/60 backdrop-blur-md z-10 border-b border-white/50 shadow-sm">
+                        <button onclick="showPage('condition')" class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-white transition shadow-sm">
+                            <i class="fa-solid fa-arrow-left text-sm"></i>
+                        </button>
+                        <h2 class="font-bold text-slate-600 text-xs tracking-widest">見た目を決める</h2>
+                        <div class="w-8"></div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="flex-1 overflow-y-auto no-scrollbar px-5 pt-8 pb-28 flex flex-col items-center justify-start">
+                        
+                        <!-- Snowglobe Capsule Preview -->
+                        <div id="themePreview" class="w-40 h-64 flex-shrink-0 relative mb-10 transition-all duration-500 ease-out animate-float"
+                             style="border-radius: 9999px; box-shadow: 0 20px 50px rgba(0,0,0,0.1);">
+                            
+                            <!-- Glass Container Surface (Reflections & Border) -->
+                            <div class="absolute inset-0 rounded-full border border-white/60 z-30 pointer-events-none"
+                                 style="background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 55%, rgba(255,255,255,0.2) 100%);
+                                        box-shadow: inset 0 0 15px rgba(255,255,255,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);">
+                                <!-- Highlights -->
+                                <div class="absolute top-6 left-5 w-8 h-16 bg-gradient-to-b from-white/90 to-transparent rounded-full opacity-70 filter blur-[1px] transform -rotate-12"></div>
+                                <div class="absolute bottom-5 right-6 w-4 h-4 bg-white/50 rounded-full filter blur-[2px]"></div>
+                            </div>
+
+                            <!-- Tinted Liquid/Background (Changes with theme) -->
+                            <div id="capsuleLiquid" class="absolute inset-1 rounded-full z-0 transition-colors duration-500 overflow-hidden"
+                                 style="background: ${themes[0].color}; opacity: 0.25;">
+                                 <!-- Inner Glow -->
+                                 <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+                            </div>
+                            
+                            <!-- Floating Content -->
+                            <div class="absolute inset-2 z-10 overflow-hidden rounded-full">
+                                ${floatingImagesHtml}
+                                
+                                <!-- Sparkles -->
+                                <div class="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full animate-pulse shadow-[0_0_5px_white]" style="animation-duration: 2s;"></div>
+                                <div class="absolute bottom-1/3 right-1/4 w-1.5 h-1.5 bg-white/90 rounded-full animate-pulse shadow-[0_0_8px_white]" style="animation-delay: 1s; animation-duration: 3s;"></div>
+                                <div class="absolute top-1/2 right-1/3 w-0.5 h-0.5 bg-white rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+                            </div>
+
+                        </div>
+
+                        <!-- Theme List (Added flex-shrink-0) -->
+                        <div class="w-full space-y-3 flex-shrink-0 animate-fade-up" style="animation-delay: 0.1s;">
+                            <label class="text-xs font-bold text-slate-400 block mb-2 text-center">テーマカラーを選択</label>
+                            <div class="grid grid-cols-4 gap-4">
+                                ${themes.map(t => `
+                                    <button onclick="selectThemeInSelector('${t.id}')" class="flex flex-col items-center gap-2 group">
+                                        <div class="w-12 h-12 rounded-full shadow-sm border-2 border-white transition transform group-hover:scale-110 ${selectedThemeId === t.id ? 'ring-2 ring-offset-2 ring-sky-400 scale-110' : ''}" 
+                                             style="background: ${t.color};" id="theme-btn-${t.id}"></div>
+                                        <span class="text-[9px] font-bold text-slate-500">${t.name}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="absolute bottom-0 left-0 w-full p-4 glass-panel border-x-0 border-b-0 z-20">
+                        <button onclick="goToSealSwipe()" class="w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold py-3 rounded-2xl shadow-lg hover:shadow-sky-200 active:scale-95 transition-all duration-300 text-sm flex items-center justify-center gap-2">
+                            <span>決定して封印へ</span>
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            // Select default or current
+            selectThemeInSelector(selectedThemeId || themes[0].id);
+        }
+
+        function selectThemeInSelector(id) {
+            selectedThemeId = id;
+            const theme = themes.find(t => t.id === id);
+            const liquid = document.getElementById('capsuleLiquid');
+            const preview = document.getElementById('themePreview');
+
+            // Update Preview
+            if (liquid && theme) {
+                liquid.style.background = theme.color;
+                // Add colored glow to container
+                preview.style.boxShadow = `0 20px 50px ${theme.shadow}`;
+            }
+
+            // Update Buttons
+            themes.forEach(t => {
+                const btn = document.getElementById(`theme-btn-${t.id}`);
+                if (btn) {
+                    if (t.id === id) {
+                        btn.classList.add('ring-2', 'ring-offset-2', 'ring-sky-400', 'scale-110');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-offset-2', 'ring-sky-400', 'scale-110');
+                    }
+                }
+            });
+        }
+
+        function setSealDate(dateStr) {
+            if (!dateStr) return;
+            const unlockDate = new Date(dateStr);
+            if (unlockDate <= new Date()) {
+                if (!confirm("設定日時が現在より過去または近すぎます。よろしいですか？")) return;
+            }
+
+            // Update draft with date
+            draftCapsule.unlockDate = unlockDate.toISOString();
+
+            // Go to Theme Selector
+            showPage('theme');
+        }
+
+        function goToSealSwipe() {
+            // Merge final data
+            pendingCapsuleData = {
+                id: Date.now().toString(),
+                ...draftCapsule,
+                theme: selectedThemeId,
+                createdAt: new Date().toISOString()
+            };
+
+            showPage('seal-swipe');
+        }
+
+        function renderSealSwipe(container) {
+            const theme = themes.find(t => t.id === selectedThemeId) || themes[0];
+
+            // Generate Floating Images for Seal View
+            const imgCount = (draftCapsule.images && draftCapsule.images.length > 0) ? draftCapsule.images.length : (draftCapsule.image ? 1 : 0);
+            let floatingImagesHtml = generateFloatingCards(imgCount);
+            container.innerHTML = `
+                <div class="h-full w-full relative flex flex-col items-center justify-center bg-slate-900 overflow-hidden animate-pop">
+                    <div class="absolute inset-0 bg-gradient-to-b from-slate-800 to-black opacity-90"></div>
+                    
+                    <div class="absolute inset-0 flex items-center justify-center opacity-40">
+                        <div class="w-64 h-64 bg-sky-500 rounded-full blur-[100px] animate-pulse"></div>
+                    </div>
+
+                    <div class="absolute top-14 w-full text-center z-10">
+                        <h2 class="text-white font-bold text-base tracking-[0.2em] drop-shadow-md">READY TO SEAL</h2>
+                        <p class="text-white/60 text-[10px] mt-2 font-bold bg-white/10 inline-block px-3 py-1 rounded-full border border-white/5">${draftCapsule.images.length}枚の写真</p>
+                    </div>
+
+                    <div id="swipeArea" class="relative w-full h-full flex flex-col items-center justify-end pb-32 z-20 touch-none">
+                        
+                        <!-- Swipeable Capsule (Snowglobe Style) -->
+                        <div id="swipableCapsule" 
+                             class="w-56 h-80 relative shadow-2xl transition-transform duration-100 ease-out cursor-grab active:cursor-grabbing animate-float"
+                             style="border-radius: 9999px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                            
+                             <!-- Glass Container Surface (Reflections & Border) -->
+                            <div class="absolute inset-0 rounded-full border-4 border-white/40 z-30 pointer-events-none"
+                                 style="background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 55%, rgba(255,255,255,0.2) 100%);
+                                        box-shadow: inset 0 0 15px rgba(255,255,255,0.6), inset 2px 2px 5px rgba(255,255,255,0.8);">
+                                <!-- Highlights -->
+                                <div class="absolute top-8 left-6 w-10 h-20 bg-gradient-to-b from-white/90 to-transparent rounded-full opacity-70 filter blur-[1px] transform -rotate-12"></div>
+                                <div class="absolute bottom-6 right-8 w-5 h-5 bg-white/50 rounded-full filter blur-[2px]"></div>
+                            </div>
+
+                            <!-- Tinted Liquid/Background -->
+                            <div class="absolute inset-1 rounded-full z-0 transition-colors duration-500 overflow-hidden"
+                                 style="background: ${theme.color}; opacity: 0.3;">
+                                 <!-- Inner Glow -->
+                                 <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+                            </div>
+                            
+                            <!-- Floating Content -->
+                            <div class="absolute inset-2 z-10 overflow-hidden rounded-full">
+                                ${floatingImagesHtml}
+                                
+                                <!-- Sparkles -->
+                                <div class="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-[0_0_5px_white]" style="animation-duration: 2s;"></div>
+                                <div class="absolute bottom-1/3 right-1/4 w-2 h-2 bg-white/90 rounded-full animate-pulse shadow-[0_0_8px_white]" style="animation-delay: 1s; animation-duration: 3s;"></div>
+                                <div class="absolute top-1/2 right-1/3 w-1 h-1 bg-white rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+
+                                <!-- Lock Icon inside (Optional, maybe floating too?) -->
+                                <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+                                    <div class="bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-white/50">
+                                        <i class="fa-solid fa-lock text-slate-600 text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="absolute bottom-16 flex flex-col items-center animate-swipe-guide pointer-events-none opacity-80">
+                            <i class="fa-solid fa-chevron-up text-white/40 text-xl mb-[-5px]"></i>
+                            <i class="fa-solid fa-chevron-up text-white/70 text-xl mb-[-5px]"></i>
+                            <i class="fa-solid fa-chevron-up text-white text-xl mb-3"></i>
+                            <span class="text-white text-[10px] font-bold tracking-widest bg-black/30 px-3 py-1 rounded-full border border-white/10">SWIPE UP</span>
+                        </div>
+                    </div>
+                    
+                    <button onclick="showPage('theme')" class="absolute top-12 left-5 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20 z-30 border border-white/10">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            `;
+            setTimeout(() => attachSwipeListeners(), 100);
+        }
+
+        async function generateAIContent() {
+            try {
+                if (currentImages.length === 0) return showToast("写真を選択してね", "error");
+
+                const btn = document.getElementById('aiBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 生成中...`;
+                btn.disabled = true;
+
+                // Mock Data
+                const mockTitles = [
+                    "最高の瞬間✨", "忘れられない景色", "大切な時間", "奇跡の一枚",
+                    "日常の輝き", "青春の1ページ", "心に残る色", "未来への便り"
+                ];
+                const mockMessages = [
+                    "この日のことは絶対に忘れない。未来の自分も、きっと笑っていますように。",
+                    "何気ない瞬間だけど、すごく大切な思い出。またこの場所に来られますように。",
+                    "今すごく楽しい！辛いことがあっても、この写真を見れば元気が出るはず。",
+                    "未来の自分へ。今の気持ちを忘れずに、毎日を楽しんでね！応援してるよ。",
+                    "色褪せない思い出をカプセルに込めて。いつか振り返った時、幸せな気持ちになれますように。"
+                ];
+                // New: Mock Hashtags
+                const mockHashtags = [
+                    "#思い出 #青春", "#最高の一日", "#エモい", "#ずっと友達",
+                    "#宝物", "#タイムカプセル", "#忘れない", "#Happy"
+                ];
+
+                // Simulate Network Delay
+                setTimeout(() => {
+                    const title = mockTitles[Math.floor(Math.random() * mockTitles.length)];
+                    const message = mockMessages[Math.floor(Math.random() * mockMessages.length)];
+                    const hashtag = mockHashtags[Math.floor(Math.random() * mockHashtags.length)];
+
+                    const titleInput = document.getElementById('capsuleTitle');
+                    const messageInput = document.getElementById('capsuleMessage');
+                    const hashtagInput = document.getElementById('capsuleHashtag');
+
+                    if (titleInput) titleInput.value = title;
+                    if (messageInput) messageInput.value = message;
+                    if (hashtagInput) hashtagInput.value = hashtag;
+
+                    // Randomly Select Emotion Tags (1-2 tags)
+                    // First, clear existing tags if any
+                    // We need to reset selectedTags array and UI
+                    // Note: This logic assumes toggleEmotion handles state correctly. 
+                    // To be safe, let's just pick 1 or 2 unique ids.
+
+                    // Reset Logic (Optional: if we want to clear previous manual selection)
+                    // Currently toggleEmotion toggles. If we want to simulate "AI Selection", 
+                    // we might want to clear first, or just add for natural feel.
+
+                    const count = Math.floor(Math.random() * 2) + 1; // 1 or 2
+                    const shuffledTags = [...emotionTags].sort(() => 0.5 - Math.random());
+                    const selected = shuffledTags.slice(0, count);
+
+                    selected.forEach(tag => {
+                        // Only add if not already selected
+                        if (!selectedTags.includes(tag.id)) {
+                            toggleEmotion(tag.id);
+                        }
+                    });
+
+                    checkFormValidity();
+                    showToast("AIが提案しました✨ (Mock)");
+
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 1200);
+            } catch (e) {
+                alert("Error in generateAIContent: " + e.message);
+                console.error(e);
+            }
+        }
+
+        function finalizeSealing() {
+            if (!pendingCapsuleData) return;
+            capsules.push(pendingCapsuleData);
+            saveCapsules();
+
+            const flash = document.getElementById('flashLayer');
+            flash.classList.add('active');
+
+            setTimeout(() => {
+                showToast("封印しました✨");
+                if (new Date() < new Date(pendingCapsuleData.unlockDate)) switchTab('locked');
+                else switchTab('unlocked');
+
+                showPage('home');
+
+                currentImages = [];
+                pendingCapsuleData = null;
+                flash.classList.remove('active');
+            }, 800);
+        }
+
+        // --- NFC Animation ---
+        function startNfcAnimation() {
+            // Get current title if available, otherwise default
+            const titleEl = document.getElementById('revealTitle');
+            const title = titleEl ? titleEl.textContent : 'Capsule';
+
+            const overlay = document.getElementById('nfcOverlay');
+            const textEl = document.getElementById('nfcOverlayText');
+
+            if (overlay && textEl) {
+                textEl.textContent = `「${title}」カードを作成中...`;
+                overlay.classList.remove('hidden');
+
+                // Fade in
+                requestAnimationFrame(() => {
+                    overlay.classList.remove('opacity-0');
+                });
+
+                // Finish
+                setTimeout(() => {
+                    overlay.classList.add('opacity-0');
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        showToast('カードへの書き込みが完了しました', 'success');
+                    }, 500);
+                }, 3000);
+            }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const container = document.getElementById('screenContainer');
+            const slider = document.getElementById('homeSlider');
+
+            document.getElementById('tab-unlocked').className = `tab-btn w-1/2 py-1.5 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${tab === 'unlocked' ? 'active' : 'text-slate-400 hover:bg-white/30 text-[10px]'}`;
+            document.getElementById('tab-locked').className = `tab-btn w-1/2 py-1.5 rounded-full text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${tab === 'locked' ? 'active' : 'text-slate-400 hover:bg-white/30 text-[10px]'}`;
+
+            if (tab === 'unlocked') {
+                container.classList.remove('bg-theme-locked');
+                container.classList.add('bg-theme-unlocked');
+            } else {
+                container.classList.remove('bg-theme-unlocked');
+                container.classList.add('bg-theme-locked');
+            }
+
+            if (slider) {
+                if (tab === 'unlocked') {
+                    slider.style.transform = 'translateX(0%)';
+                } else {
+                    slider.style.transform = 'translateX(-50%)';
+                }
+            } else if (currentPage === 'home' || currentPage === 'collection') {
+                renderHome(document.getElementById('mainContent'));
+            }
+        }
+
+        function toggleHomeView() {
+            currentHomeView = currentHomeView === 'slider' ? 'list' : 'slider';
+            renderHome(document.getElementById('mainContent'));
+        }
+
+
+        function renderHome(container) {
+            const now = new Date();
+            // Filter out opened capsules for Home
+            let availableCapsules = capsules.filter(c => !c.isOpened);
+
+            let unlockedCapsules = availableCapsules.filter(c => new Date(c.unlockDate) <= now);
+            let lockedCapsules = availableCapsules.filter(c => new Date(c.unlockDate) > now);
+
+            unlockedCapsules.sort((a, b) => new Date(b.unlockDate) - new Date(a.unlockDate));
+            lockedCapsules.sort((a, b) => new Date(a.unlockDate) - new Date(b.unlockDate));
+
+            const generateHtml = (list, type) => {
+                if (list.length === 0) {
+                    const isLockedTab = type === 'locked';
+                    return `
+                        <div class="flex flex-col items-center justify-center h-full pb-20 animate-pop px-10 text-center relative">
+                            <div class="w-28 h-28 bg-white/80 rounded-full flex items-center justify-center mb-5 shadow-sm border border-white glass-panel">
+                                <i class="fa-solid ${isLockedTab ? 'fa-paper-plane' : 'fa-box-open'} text-4xl text-sky-200"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-600 mb-2">
+                                ${isLockedTab ? '未来へ届けよう' : 'まだ届いていません'}
+                            </h3>
+                            <p class="text-[11px] text-slate-400 leading-relaxed mb-6">
+                                ${isLockedTab
+                            ? '大切な思い出や今の気持ちを<br>カプセルに閉じ込めてみませんか？'
+                            : '設定した日時になると<br>カプセルを開封できるようになります'}
+                            </p>
+                            ${isLockedTab ? `
+                                <div class="absolute bottom-14 flex flex-col items-center animate-bounce text-sky-400 pointer-events-none opacity-80">
+                                    <span class="text-[10px] font-bold tracking-widest mb-1" style="font-family: 'Poppins', sans-serif;">Make New</span>
+                                    <svg width="20" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 5v14M19 12l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                if (currentHomeView === 'list') {
+                    // LIST VIEW
+                    let html = `<div class="flex flex-col gap-3 px-4 pt-4 pb-24 w-full animate-fade-up">`;
+                    list.forEach(cap => {
+                        const theme = themes.find(t => t.id === cap.theme) || themes[0];
+                        const isLocked = type === 'locked';
+                        const thumb = cap.images && cap.images.length > 0 ? cap.images[0] : cap.image;
+
+                        html += `
+                        <div onclick="openCapsule('${cap.id}')" class="glass-panel p-3 rounded-2xl flex items-center gap-4 shadow-sm active:scale-95 transition cursor-pointer border border-white/60">
+                            <div class="w-12 h-16 capsule-shape shrink-0 relative shadow-sm border-2 border-white/50" style="background: ${theme.bg};">
+                                <div class="absolute inset-0 flex items-center justify-center z-10">
+                                    ${!isLocked
+                                ? `<div class="w-full h-full flex items-center justify-center p-1 bg-white/20 backdrop-blur-md rounded-full"><i class="fa-solid fa-gift text-2xl text-white drop-shadow-sm animate-bounce"></i></div>`
+                                : `<i class="fa-solid fa-lock text-xs text-white opacity-80 drop-shadow-sm"></i>`
+                            }
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-sm text-slate-700 truncate mb-1">${cap.title}</h3>
+                                ${isLocked
+                                ? `<span class="text-[10px] text-slate-400 flex items-center gap-1"><i class="fa-regular fa-clock"></i> <span class="font-mono countdown" data-date="${cap.unlockDate}">計算中...</span></span>`
+                                : `<span class="bg-sky-100 text-sky-600 px-2 py-0.5 rounded-full text-[9px] font-bold">開封可能</span>`
+                            }
+                                <div class="text-[9px] text-slate-400 mt-0.5 opacity-80 trancate">
+                                    <i class="fa-solid fa-pen-nib text-[8px] mr-0.5"></i> ${new Date(cap.createdAt || new Date(new Date(cap.unlockDate).getTime() - 86400000)).toLocaleDateString()} 封印
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                    return html;
+                } else {
+                    // SLIDER VIEW (Original)
+                    let html = `<div class="flex overflow-x-auto snap-x snap-mandatory px-[calc(50%-5.5rem)] py-4 gap-6 no-scrollbar h-full items-center w-full">`;
+                    list.forEach(cap => {
+                        const theme = themes.find(t => t.id === cap.theme) || themes[0];
+                        const isLocked = type === 'locked';
+                        const thumb = cap.images && cap.images.length > 0 ? cap.images[0] : cap.image;
+
+                        // Generate Inner Content
+                        let innerContent = '';
+
+                        // SNOWGLOBE DESIGN (Unified for both Locked and Unlocked)
+                        let containerClass = "w-32 h-48 relative mb-4 transition transform group-hover:scale-105 duration-300";
+                        let containerStyle = `border-radius: 9999px; box-shadow: 0 15px 35px ${theme.shadow};`;
+
+                        // Floating Images Logic
+                        let floatingImagesHtml = '';
+                        const images = cap.images && cap.images.length > 0 ? cap.images : [cap.image];
+
+                        if (!isLocked) {
+                            // UNLOCKED: Hide photos, show "Gift" icon
+                            floatingImagesHtml = `
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+                                    <div class="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg border border-white/60 animate-bounce">
+                                        <i class="fa-solid fa-gift text-3xl text-white drop-shadow-md"></i>
+                                    </div>
+                                    <span class="text-white text-[10px] font-bold mt-2 drop-shadow-md tracking-widest">OPEN ME!</span>
+                                </div>
+                            `;
+                        } else {
+                            // LOCKED: Show abstract cards
+                            const imgCount = (cap.images && cap.images.length > 0) ? cap.images.length : (cap.image ? 1 : 0);
+                            floatingImagesHtml = generateFloatingCards(imgCount);
+                        }
+
+                        // Calculate Cloudiness/Turbidity
+                        // Progress goes from 0 (Creation) to 1 (Unlock)
+                        const createdAt = new Date(cap.createdAt || new Date(new Date(cap.unlockDate).getTime() - 86400000));
+                        const unlockDate = new Date(cap.unlockDate);
+                        const totalDuration = unlockDate.getTime() - createdAt.getTime();
+                        const now = new Date();
+                        const elapsed = now.getTime() - createdAt.getTime();
+
+                        // Ratio calculation (clamped 0 to 1)
+                        // If unlocked (elapsed > totalDuration), ratio will match 1.
+                        let ratio = Math.max(0, Math.min(1, elapsed / totalDuration));
+
+                        const cloudOpacity = ratio;
+                        const cloudBlur = ratio * 8; // Max 8px blur
+
+                        innerContent = `
+                            <!-- Glass Container Surface -->
+                            <div class="absolute inset-0 rounded-full border-2 border-white/50 z-30 pointer-events-none"
+                                 style="background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.05) 45%, rgba(255,255,255,0) 55%, rgba(255,255,255,0.2) 100%);
+                                        box-shadow: inset 0 0 10px rgba(255,255,255,0.6);">
+                                <div class="absolute top-4 left-3 w-4 h-10 bg-gradient-to-b from-white/90 to-transparent rounded-full opacity-70 filter blur-[1px] transform -rotate-12"></div>
+                                <div class="absolute bottom-4 right-4 w-2 h-2 bg-white/50 rounded-full filter blur-[1px]"></div>
+                            </div>
+                            <!-- Tinted Liquid -->
+                            <div class="absolute inset-1 rounded-full z-0 overflow-hidden" style="background: ${theme.color}; opacity: 0.3;">
+                                 <div class="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent"></div>
+                            </div>
+                            <!-- Content -->
+                            <div class="absolute inset-2 z-10 overflow-hidden rounded-full">
+                                ${floatingImagesHtml}
+                                
+                                <!-- Dynamic Turbidity Cloud Layer -->
+                                <div class="absolute inset-0 rounded-full pointer-events-none transition-all duration-1000"
+                                     style="background: rgba(255, 255, 255, 0.6); 
+                                            opacity: ${cloudOpacity}; 
+                                            backdrop-filter: blur(${cloudBlur}px);">
+                                </div>
+
+                                <div class="absolute top-1/4 left-1/4 w-0.5 h-0.5 bg-white rounded-full animate-pulse shadow-[0_0_5px_white]" style="animation-duration: 2s;"></div>
+                                <div class="absolute bottom-1/3 right-1/4 w-1 h-1 bg-white/90 rounded-full animate-pulse shadow-[0_0_8px_white]" style="animation-delay: 1s; animation-duration: 3s;"></div>
+                                 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20">
+                                    <div class="bg-white/80 backdrop-blur-sm p-1.5 rounded-full shadow-sm">
+                                        <i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-lock-open'} text-slate-500 text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        html += `
+                            <div onclick="openCapsule('${cap.id}')" class="snap-center shrink-0 w-44 flex flex-col items-center animate-pop cursor-pointer group">
+                                <div class="${containerClass}" style="${containerStyle}">
+                                    ${innerContent}
+                                </div>
+                                <div class="text-center w-full px-2">
+                                    <h3 class="font-bold text-sm text-slate-600 mb-1 truncate drop-shadow-sm">${cap.title}</h3>
+                                    ${isLocked
+                                ? `<span class="bg-white/60 text-slate-500 px-2 py-0.5 rounded-full text-[9px] font-mono countdown block w-fit mx-auto backdrop-blur-sm border border-white/50" data-date="${cap.unlockDate}">計算中...</span>`
+                                : `<span class="bg-sky-100 text-sky-600 px-3 py-0.5 rounded-full text-[10px] font-bold inline-block mt-0.5 shadow-sm">開封する</span>`
+                            }
+                                </div>
+                                <div class="text-[9px] text-slate-400 mt-1 opacity-70">
+                                    <i class="fa-solid fa-pen-nib text-[8px] mr-1"></i>${new Date(cap.createdAt || new Date(new Date(cap.unlockDate).getTime() - 86400000)).toLocaleDateString()}
+                                </div>
+                            </div>`;
+                    });
+                    html += `</div>`;
+                    return html;
+                }
+            };
+
+            const unlockedHtml = generateHtml(unlockedCapsules, 'unlocked');
+            const lockedHtml = generateHtml(lockedCapsules, 'locked');
+
+            // Toggle Button HTML
+            const toggleBtn = `
+                <button onclick="toggleHomeView()" class="absolute bottom-20 right-6 z-40 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full text-sky-500 shadow-lg border border-white flex items-center justify-center transition hover:scale-110 active:scale-90 animate-fade-up">
+                    <i class="fa-solid ${currentHomeView === 'slider' ? 'fa-list-ul' : 'fa-grip'} text-sm"></i>
+                </button>
+            `;
+
+            container.innerHTML = `
+                ${toggleBtn}
+                <div id="homeSlider" class="flex w-[200%] h-full transition-transform duration-500 ease-out" 
+                     style="transform: translateX(${currentTab === 'unlocked' ? '0%' : '-50%'})">
+                    <div class="w-1/2 h-full relative overflow-y-auto overflow-x-hidden no-scrollbar">${unlockedHtml}</div>
+                    <div class="w-1/2 h-full relative overflow-y-auto overflow-x-hidden no-scrollbar">${lockedHtml}</div>
+                </div>
+            `;
+        }
+
+        function renderCollection(container) {
+            // Initial render of the Collection Page Structure (ONCE)
+            const hasOpened = capsules.some(c => c.isOpened);
+
+            if (!hasOpened) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full pb-20 animate-pop px-10 text-center relative">
+                        <div class="w-28 h-28 bg-white/80 rounded-full flex items-center justify-center mb-5 shadow-sm border border-white glass-panel">
+                            <i class="fa-solid fa-box-open text-4xl text-sky-200"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-600 mb-2">コレクションは空です</h3>
+                        <p class="text-[11px] text-slate-400 leading-relaxed mb-6">
+                            カプセルを開封すると<br>ここに思い出が保存されます
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render Layout (Static parts + search bar + Grid Container)
+            container.innerHTML = `
+                <div class="pt-12 px-6 mb-2 animate-fade-up">
+                    <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-open text-sky-400"></i> MYコレクション
+                    </h2>
+                    <p class="text-[10px] text-slate-400 pl-1">思い出のカプセル一覧</p>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="px-6 mb-4 animate-fade-up" style="animation-delay: 0.1s;">
+                     <div class="bg-white rounded-full flex items-center px-4 py-3 border border-slate-100 shadow-sm">
+                         <i class="fa-solid fa-hashtag text-sky-400 mr-2"></i>
+                         <input type="text" placeholder="ハッシュタグを検索..." 
+                                oninput="filterCollection(this.value)" 
+                                class="bg-transparent border-none outline-none text-xs w-full text-slate-600 placeholder-slate-300">
+                     </div>
+                </div>
+
+                <div id="collectionGrid" class="grid grid-cols-2 gap-4 p-4 pb-24">
+                    <!-- Grid items injected here -->
+                </div>
+            `;
+
+            // Initial load of grid
+            filterCollection('');
+        }
+
+        function filterCollection(filterText) {
+            const grid = document.getElementById('collectionGrid');
+            if (!grid) return;
+
+            const openedCapsules = capsules.filter(c => c.isOpened).sort((a, b) => new Date(b.unlockDate) - new Date(a.unlockDate));
+
+            // Filter logic
+            let filtered = openedCapsules;
+            if (filterText) {
+                const lowerFilter = filterText.toLowerCase();
+                filtered = openedCapsules.filter(c =>
+                    (c.hashtags && c.hashtags.some(tag => tag.toLowerCase().includes(lowerFilter))) ||
+                    (c.hashtag && c.hashtag.toLowerCase().includes(lowerFilter)) ||
+                    c.title.toLowerCase().includes(lowerFilter)
+                );
+            }
+
+            let html = '';
+            if (filtered.length === 0) {
+                html = `
+                    <div class="col-span-2 text-center py-10 text-slate-400 text-xs">
+                        見つかりませんでした
+                    </div>
+                `;
+            } else {
+                filtered.forEach(cap => {
+                    const theme = themes.find(t => t.id === cap.theme) || themes[0];
+                    const thumb = cap.images && cap.images.length > 0 ? cap.images[0] : cap.image;
+
+                    html += `
+                        <div onclick="openCapsule('${cap.id}')" class="flex flex-col items-center animate-pop cursor-pointer group">
+                             <!-- Capsule Container -->
+                             <div class="w-full aspect-[2/3] relative mb-2 transition transform group-hover:scale-105 duration-300">
+                                 <!-- Shape & Image -->
+                                 <div class="absolute inset-0 rounded-[9999px] border-[3px] border-white shadow-lg overflow-hidden bg-white">
+                                      <img src="${thumb}" class="w-full h-full object-cover">
+                                      <!-- Gloss/Gradient -->
+                                      <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-white/10 opacity-80"></div>
+                                      <!-- Date Label -->
+                                      <div class="absolute bottom-4 w-full text-center text-white text-[10px] font-bold drop-shadow-md tracking-wider">
+                                          ${new Date(cap.unlockDate).toLocaleDateString()}
+                                      </div>
+                                 </div>
+                             </div>
+                             <h3 class="font-bold text-xs text-slate-600 truncate w-24 text-center">${cap.title}</h3>
+                        </div>
+                    `;
+                });
+            }
+            grid.innerHTML = html;
+        }
+
+
+        function renderFriends(container) {
+            container.innerHTML = `
+                <div class="pt-12 px-6 mb-4 animate-fade-up">
+                    <h2 class="text-xl font-bold text-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-user-group text-sky-400"></i> APEX友達リスト
+                    </h2>
+                    <p class="text-[10px] text-slate-400 pl-1">APEXカプセルを交換した友達</p>
+                </div>
+                
+                <div class="px-4 mb-6 animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="glass-panel p-1 rounded-full flex items-center shadow-sm mb-3">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 ml-3 text-xs"></i>
+                        <input type="text" placeholder="IDや名前で検索" class="bg-transparent border-none text-xs w-full py-2 px-2 focus:outline-none text-slate-600 placeholder-slate-400">
+                    </div>
+                    <button class="w-full bg-sky-100 text-sky-600 py-2.5 rounded-xl text-xs font-bold border border-sky-200 shadow-sm flex items-center justify-center gap-2 active:scale-95 transition">
+                        <i class="fa-solid fa-qrcode"></i> 友達追加・招待
+                    </button>
+                </div>
+
+                <div class="px-4 pb-24 flex flex-col gap-3 animate-fade-up" style="animation-delay: 0.2s;">
+                    <!-- Demo Friend -->
+                    <div onclick="showFriendQR('Hanako 🌼')" class="glass-panel p-3 rounded-2xl flex items-center gap-3 active:scale-95 transition cursor-pointer border-2 border-pink-100 hover:bg-pink-50/50">
+                        <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-lg shadow-inner relative">
+                            <i class="fa-solid fa-user text-pink-400 opacity-70"></i>
+                            <div class="absolute -top-1 -right-1 w-4 h-4 bg-red-400 border-2 border-white rounded-full flex items-center justify-center text-[8px] text-white font-bold animate-pulse">!</div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-sm font-bold text-slate-700">Hanako 🌼</h3>
+                            <p class="text-[10px] text-slate-400">近くにいます！タップして再会を確認</p>
+                        </div>
+                        <button class="w-8 h-8 rounded-full bg-pink-500 text-white flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-qrcode text-[10px]"></i>
+                        </button>
+                    </div>
+
+                    ${renderMockFriend('Mai 🌸', 5, true)}
+                    ${renderMockFriend('Kaito ⚽️', 2, false)}
+                    ${renderMockFriend('Rina 🎨', 12, false)}
+                    ${renderMockFriend('Taro 🎮', 1, false)}
+                </div>
+            `;
+        }
+
+        // --- Friend Meeting Demo Logic ---
+        function showFriendQR(friendName) {
+            const modal = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+
+            content.innerHTML = `
+                <div class="flex flex-col items-center animate-pop">
+                    <h3 class="font-bold text-lg text-slate-700 mb-1">再会を確認</h3>
+                    <p class="text-xs text-slate-400 mb-6">${friendName}さんのQRコードを読み取ってください</p>
+                    
+                    <div onclick="handleFriendUnlock('${friendName}')" class="w-48 h-48 bg-white border-2 border-slate-100 rounded-3xl flex items-center justify-center mb-6 shadow-sm active:scale-95 transition cursor-pointer relative overflow-hidden group">
+                        <i class="fa-solid fa-qrcode text-8xl text-slate-800"></i>
+                        <div class="absolute inset-0 bg-sky-500/10 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                            <span class="bg-sky-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">タップしてスキャン完了</span>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 mb-4 animate-pulse">カメラを起動中...</p>
+                    
+                    <button onclick="closeModal()" class="w-full bg-slate-100 text-slate-500 py-3 rounded-xl font-bold text-xs hover:bg-slate-200 transition">キャンセル</button>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function handleFriendUnlock(friendName) {
+            closeModal();
+
+            // Simulate Processing
+            showToast('認証中...', false);
+
+            setTimeout(() => {
+                showToast('認証成功！再会を確認しました', false);
+
+                // Find a locked capsule to unlock (or create specific logic)
+                // For demo, we'll try to find a locked capsule that isn't opened yet
+                const lockedCapsule = capsules.find(c => !c.isOpened && new Date() < new Date(c.unlockDate));
+
+                if (lockedCapsule) {
+                    // Force unlock it for demo
+                    lockedCapsule.unlockDate = new Date().toISOString();
+                    saveCapsules();
+
+                    setTimeout(() => {
+                        showUnlockBanner(lockedCapsule);
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        showToast('新しいカプセルが作成可能になりました！', false);
+                    }, 1000);
+                }
+
+            }, 1500);
+        }
+
+        function renderMockFriend(name, count, isNew) {
+            // Generate avatar color
+            const colors = ['bg-pink-100', 'bg-blue-100', 'bg-green-100', 'bg-purple-100', 'bg-yellow-100'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const iconColors = ['text-pink-400', 'text-blue-400', 'text-green-400', 'text-purple-400', 'text-yellow-400'];
+            const iconColor = iconColors[Math.floor(Math.random() * iconColors.length)];
+
+            return `
+                <div class="glass-panel p-3 rounded-2xl flex items-center gap-3 active:scale-95 transition cursor-pointer">
+                    <div class="w-12 h-12 rounded-full ${color} flex items-center justify-center text-lg shadow-inner relative">
+                        <i class="fa-solid fa-user ${iconColor} opacity-70"></i>
+                        ${isNew ? '<div class="absolute -top-1 -right-1 w-4 h-4 bg-red-400 border-2 border-white rounded-full flex items-center justify-center text-[8px] text-white font-bold">N</div>' : ''}
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-sm font-bold text-slate-700">${name}</h3>
+                        <p class="text-[10px] text-slate-400">交換したカプセル: <span class="font-bold text-sky-500">${count}</span>個</p>
+                    </div>
+                    <button class="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100">
+                        <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function openCapsule(id) {
+            const cap = capsules.find(c => c.id === id);
+            if (!cap) return;
+            const isLocked = new Date() < new Date(cap.unlockDate);
+            activeRevealCapsule = cap;
+
+            if (isLocked) {
+                const modal = document.getElementById('modalOverlay');
+                const content = document.getElementById('modalContent');
+                const theme = themes.find(t => t.id === cap.theme) || themes[0];
+                const timeLeft = getTimeLeft(new Date(cap.unlockDate));
+                content.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-24 capsule-shape mb-4 flex items-center justify-center shadow-md animate-float" style="background: ${theme.bg};">
+                            <i class="fa-solid fa-lock text-xl text-white/80"></i>
+                        </div>
+                        <h3 class="font-bold text-sm text-slate-700 mb-2">まだ封印されています</h3>
+                        <p class="text-[10px] text-slate-400 mb-5">設定日時までお待ちください</p>
+                        <div class="bg-sky-50 text-sky-500 font-bold px-4 py-2 rounded-full text-xs mb-6 border border-sky-100">${timeLeft}</div>
+                        <button onclick="closeModal()" class="w-full bg-slate-100 text-slate-600 py-3 rounded-full font-bold text-xs hover:bg-slate-200 transition">閉じる</button>
+                    </div>`;
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            } else {
+                playRevealAnimation(cap);
+            }
+        }
+
+        function playRevealAnimation(cap) {
+            const flash = document.getElementById('flashLayer');
+            const reveal = document.getElementById('revealOverlay');
+            activeRevealCapsule = cap;
+
+            const images = cap.images && cap.images.length > 0 ? cap.images : [cap.image];
+            revealImageIndex = 0;
+
+            // --- Photo Stack Generation ---
+            const container = document.getElementById('revealPhotoContainer');
+            container.innerHTML = '';
+
+            // Create loop for images. Reverse order so first image is Last (Top)
+            const reversedImages = [...images].reverse();
+
+            reversedImages.forEach((src, i) => {
+                const globalIndex = (images.length - 1) - i;
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = 'photo-interactive cursor-pointer';
+                img.dataset.index = globalIndex;
+
+                // Randomize fall parameters
+                const rotStart = (Math.random() * 20 - 10) + 'deg';
+                const rotEnd = (Math.random() * 10 - 5) + 'deg';
+                img.style.setProperty('--rot-start', rotStart);
+                img.style.setProperty('--rot-end', rotEnd);
+
+                // Delay so bottom ones fall first (or visual preference)
+                img.style.animationDelay = (i * 0.2) + 's';
+
+                container.appendChild(img);
+            });
+
+            updateRevealInfo(0, images.length, images[0]);
+
+            // --- Reset List Mode ---
+            const resetContainer = document.getElementById('revealPhotoContainer');
+            const toggleBtn = document.getElementById('revealToggleBtn');
+            if (resetContainer) resetContainer.classList.remove('list-mode');
+            if (toggleBtn) toggleBtn.innerHTML = '<i class="fa-solid fa-grip text-xs"></i>';
+
+            document.getElementById('revealTitle').textContent = cap.title;
+            document.getElementById('revealDate').textContent = new Date(cap.createdAt).toLocaleDateString();
+            document.getElementById('revealMessage').textContent = cap.message || "メッセージはありません";
+
+            const hashtagEl = document.getElementById('revealHashtag');
+            if (hashtagEl) {
+                // Prefer array unique hashtags, fallback to string
+                let displayHashtag = cap.hashtag || '';
+                if (cap.hashtags && cap.hashtags.length > 0) {
+                    displayHashtag = cap.hashtags.join(' ');
+                }
+                hashtagEl.textContent = displayHashtag;
+                hashtagEl.style.display = displayHashtag ? 'block' : 'none';
+            }
+
+            const tagsContainer = document.getElementById('revealTags');
+            if (tagsContainer) {
+                tagsContainer.innerHTML = '';
+                if (cap.tags && cap.tags.length > 0) {
+                    cap.tags.forEach(tagId => {
+                        const tagData = emotionTags.find(t => t.id === tagId);
+                        if (tagData) {
+                            tagsContainer.innerHTML += `<span class="bg-white/80 backdrop-blur-md px-2 py-1 rounded-full text-[8px] font-bold text-slate-700 shadow-sm flex items-center gap-1 border border-white/50"><i class="fa-solid ${tagData.icon}"></i> ${tagData.label}</span>`;
+                        }
+                    });
+                }
+            }
+
+            flash.classList.add('active');
+
+            setTimeout(() => {
+                reveal.classList.add('active');
+                startConfetti();
+
+                // Mark as opened
+                if (!cap.isOpened) {
+                    cap.isOpened = true;
+                    saveCapsules();
+                }
+
+                setTimeout(() => {
+                    document.getElementById('revealContent').classList.remove('opacity-0', 'translate-y-4');
+                    flash.classList.remove('active');
+                }, 400);
+            }, 200);
+        }
+
+        function toggleRevealImage() {
+            const container = document.getElementById('revealPhotoContainer');
+            if (container.children.length <= 1) return;
+
+            // Move top image (lastChild) to bottom (firstChild)
+            const top = container.lastElementChild;
+            const bottom = container.firstElementChild;
+
+            top.style.animation = 'none';
+            top.style.opacity = '1'; // Ensure opacity
+
+            container.insertBefore(top, bottom);
+
+            // New top
+            const newTop = container.lastElementChild;
+
+            const index = parseInt(newTop.dataset.index);
+            const total = container.children.length;
+            updateRevealInfo(index, total, newTop.src);
+        }
+
+        function updateRevealInfo(index, total, src) {
+            const downloadLink = document.getElementById('revealDownload');
+            const indicator = document.getElementById('revealIndicator');
+            const count = document.getElementById('revealCount');
+
+            downloadLink.href = src;
+            if (activeRevealCapsule) {
+                downloadLink.download = `capsule_${activeRevealCapsule.id}_${index}.jpg`;
+            }
+
+            if (total > 1) {
+                indicator.classList.remove('hidden');
+                count.textContent = `${index + 1} / ${total}`;
+            } else {
+                indicator.classList.add('hidden');
+            }
+        }
+
+        function closeReveal() {
+            const reveal = document.getElementById('revealOverlay');
+            document.getElementById('revealContent').classList.add('opacity-0', 'translate-y-4');
+            reveal.classList.remove('active');
+            stopConfetti();
+            activeRevealCapsule = null;
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function deleteCapsule(id) {
+            if (confirm("この思い出を削除しますか？")) {
+                capsules = capsules.filter(c => c.id !== id);
+                saveCapsules();
+                closeModal();
+                showPage('home');
+            }
+        }
+
+        // --- Mock OS Home Renderer ---
+
+
+        // --- My Page Logic (TikTok Style) ---
+        function renderMyPage(container) {
+            // Filter opened capsules and shuffle randomly
+            const openedCapsules = capsules.filter(c => c.isOpened && c.isOpened === true);
+            const shuffledCapsules = [...openedCapsules].sort(() => Math.random() - 0.5);
+
+            if (shuffledCapsules.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full pb-20 animate-fade-up">
+                        <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-300">
+                             <i class="fa-solid fa-box-open text-3xl"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-600 mb-2">まだカプセルを開けていません</h3>
+                        <p class="text-[10px] text-slate-400">開封済みのカプセルがここ思い出として表示されます</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Scroll Snap Container
+            let html = `
+                <div class="w-full h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar bg-black relative">
+            `;
+
+            shuffledCapsules.forEach(cap => {
+                const theme = themes.find(t => t.id === cap.theme) || themes[0];
+                const thumb = cap.images && cap.images.length > 0 ? cap.images[0] : cap.image;
+
+                // Full Screen Card
+                html += `
+                <div class="w-full h-full snap-start relative flex items-center justify-center overflow-hidden">
+                    
+                    <!-- Background (Blurred) -->
+                    <div class="absolute inset-0 z-0">
+                        ${thumb ? `<img src="${thumb}" class="w-full h-full object-cover filter blur-xl opacity-60 scale-110">` : `<div class="w-full h-full" style="background: ${theme.bg}"></div>`}
+                        <div class="absolute inset-0 bg-black/40"></div>
+                    </div>
+
+                    <!-- Main Content (Card) -->
+                    <div class="relative z-10 w-[85%] aspect-[3/4] bg-white p-2 pb-8 shadow-2xl rounded-sm transform rotate-1 animate-float" style="animation-duration: 6s;">
+                        <div class="w-full h-full bg-slate-100 overflow-hidden relative border border-slate-200">
+                             ${thumb ? `<img src="${thumb}" class="w-full h-full object-cover">` : ''}
+                        </div>
+                        <!-- Tape/Label decoration -->
+                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white/30 backdrop-blur-md rotate-[-2deg] shadow-sm"></div>
+                    </div>
+
+                    <!-- Overlay Info (Bottom) -->
+                    <div class="absolute bottom-24 left-0 w-full p-6 z-20 text-white bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-20">
+                         <div class="flex items-center gap-2 mb-2">
+                            <div class="w-8 h-8 rounded-full border border-white/50 flex items-center justify-center bg-white/20 backdrop-blur-md">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </div>
+                            <span class="font-bold text-sm shadow-black drop-shadow-md">My Memory</span>
+                         </div>
+                         
+                         <h3 class="font-bold text-xl mb-2 drop-shadow-md line-clamp-2 leading-tight">${cap.title}</h3>
+                         <p class="text-sm opacity-90 mb-3 line-clamp-3 leading-relaxed font-light">${cap.message || ''}</p>
+                         
+                         <div class="flex flex-wrap gap-2">
+                             <span class="text-[10px] font-bold bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                                <i class="fa-regular fa-calendar mr-1"></i> ${new Date(cap.unlockDate).toLocaleDateString()}
+                             </span>
+                             ${cap.hashtag ? `<span class="text-[10px] font-bold bg-sky-500/80 px-2 py-0.5 rounded-full"> #${cap.hashtag}</span>` : ''}
+                         </div>
+                    </div>
+
+                    <!-- Side Actions (Like TikTok) -->
+                    <div class="absolute right-2 bottom-32 flex flex-col items-center gap-6 z-20">
+                        <div class="flex flex-col items-center gap-1">
+                            <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition cursor-pointer">
+                                <i class="fa-solid fa-heart text-xl"></i>
+                            </div>
+                            <span class="text-[10px] text-white font-bold shadow-black drop-shadow-md">Love</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1">
+                             <div class="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition cursor-pointer">
+                                <i class="fa-solid fa-share text-xl"></i>
+                            </div>
+                            <span class="text-[10px] text-white font-bold shadow-black drop-shadow-md">Share</span>
+                        </div>
+                    </div>
+
+                </div>`;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderOSHome(container) {
+            container.innerHTML = `
+                <div class="w-full h-full flex flex-col justify-between pt-16 pb-8 px-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white relative animate-fade-up">
+                    
+                    <!-- App Grid -->
+                    <div class="grid grid-cols-4 gap-4 px-2">
+                        <!-- Time Capsule App -->
+                        <div onclick="launchApp()" class="flex flex-col items-center gap-1 cursor-pointer group">
+                            <div class="w-14 h-14 rounded-[14px] flex items-center justify-center shadow-lg group-active:scale-90 transition-transform duration-200 relative overflow-hidden bg-gradient-to-tr from-sky-400 via-purple-400 to-pink-400">
+                                <!-- Icon: White Capsule Shape -->
+                                <div class="w-8 h-5 rounded-full border-[3px] border-white flex items-center justify-center transform -rotate-12 shadow-sm">
+                                    <div class="w-2.5 h-2.5 bg-white rounded-full"></div>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-medium drop-shadow-md">ピクキャン</span>
+                        </div>
+
+                        <!-- Dummy Apps -->
+                        ${['fa-brands fa-apple', 'fa-solid fa-calendar-days', 'fa-solid fa-camera', 'fa-solid fa-map', 'fa-solid fa-clock'].map(icon => `
+                        <div class="flex flex-col items-center gap-1 opacity-80 scale-95 pointer-events-none">
+                            <div class="w-14 h-14 rounded-[14px] bg-white/20 backdrop-blur-md flex items-center justify-center shadow-sm">
+                                <i class="${icon} text-2xl text-white"></i>
+                            </div>
+                            <span class="text-[10px] font-medium drop-shadow-md text-transparent bg-clip-text bg-white/50">App</span>
+                        </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- NFC Animation Overlay -->
+        <div id="nfcOverlay" class="absolute inset-0 z-[200] bg-slate-900/95 flex flex-col items-center justify-center text-white hidden opacity-0 transition-opacity duration-500">
+            <div class="relative w-40 h-40 flex items-center justify-center mb-8">
+                <!-- Ripples -->
+                <div class="absolute inset-0 rounded-full border-2 border-sky-500/30 animate-ping" style="animation-duration: 2s;"></div>
+                <div class="absolute inset-0 rounded-full border-2 border-sky-400/50 animate-ping" style="animation-delay: 0.5s; animation-duration: 2s;"></div>
+                
+                <!-- Icon -->
+                <div class="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(14,165,233,0.6)] animate-pulse relative z-10">
+                    <i class="fa-solid fa-tower-broadcast text-4xl text-white"></i>
+                </div>
+            </div>
+            
+            <h3 class="font-bold text-lg mb-2 tracking-widest text-sky-200">DATA TRANSFER</h3>
+            <p id="nfcOverlayText" class="text-xs font-mono text-sky-100/70 mb-8 border-b border-sky-500/30 pb-1">カードデータ作成中...</p>
+            
+            <!-- Progress Bar -->
+            <div class="w-64 h-1 bg-white/10 rounded-full overflow-hidden">
+                <div class="h-full bg-sky-400 w-0 animate-[progress_3s_ease-in-out_forwards] shadow-[0_0_10px_rgba(56,189,248,0.8)]"></div>
+            </div>
+        </div>
+
+                    <!-- Notification Toast -->
+                    <div class="flex justify-center gap-2 mt-4 opacity-50">
+                        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                        <div class="w-1.5 h-1.5 rounded-full bg-white/50"></div>
+                    </div>
+
+                    <!-- Dock -->
+                    <div class="mt-auto">
+                        <div class="w-full h-20 bg-white/20 backdrop-blur-xl rounded-[30px] flex items-center justify-around px-4 shadow-lg border border-white/10">
+                            <div class="w-12 h-12 rounded-[12px] bg-green-500 flex items-center justify-center shadow-lg"><i class="fa-solid fa-phone text-xl"></i></div>
+                            <div class="w-12 h-12 rounded-[12px] bg-blue-500 flex items-center justify-center shadow-lg"><i class="fa-solid fa-envelope text-xl"></i></div>
+                             <div class="w-12 h-12 rounded-[12px] bg-white flex items-center justify-center shadow-lg"><i class="fa-brands fa-safari text-2xl text-blue-500"></i></div>
+                            <div class="w-12 h-12 rounded-[12px] bg-orange-400 flex items-center justify-center shadow-lg"><i class="fa-solid fa-music text-xl"></i></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleRevealMode(e) {
+            e.stopPropagation(); // Prevent photo click
+            const container = document.getElementById('revealPhotoContainer');
+            const btn = document.getElementById('revealToggleBtn');
+            const isList = container.classList.toggle('list-mode');
+
+            // Update Icon
+            if (btn) btn.innerHTML = isList
+                ? '<i class="fa-solid fa-layer-group text-xs"></i>'
+                : '<i class="fa-solid fa-grip text-xs"></i>';
+        }
+
+        function launchApp() {
+            // Zoom animation effect
+            const container = document.getElementById('mainContent');
+            container.style.transform = "scale(3)";
+            container.style.opacity = "0";
+
+            setTimeout(() => {
+                container.style.transition = 'none';
+                container.style.transform = "scale(1)";
+
+                // SHOW TITLE SCREEN
+                showPage('title');
+
+                // Reset transition
+                setTimeout(() => {
+                    container.style.transition = '';
+                }, 50);
+
+                // Wait then go to Home
+                setTimeout(() => {
+                    // Fade out title
+                    container.style.opacity = '0';
+                    setTimeout(() => {
+                        showPage('home');
+                        container.style.opacity = '1';
+                    }, 500);
+                }, 2500); // 2.5s display time
+
+            }, 300);
+        }
+
+        function renderTitleScreen(container) {
+            container.innerHTML = `
+                <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-b from-sky-300 to-sky-50 animate-fade-up relative overflow-hidden">
+                    <!-- Decor Elements: Clouds -->
+                    <div class="absolute top-[10%] right-[-10%] text-white/20 text-9xl animate-pulse" style="animation-duration: 8s;"><i class="fa-solid fa-cloud"></i></div>
+                    <div class="absolute top-[20%] left-[-10%] text-white/10 text-8xl animate-pulse" style="animation-duration: 10s;"><i class="fa-solid fa-cloud"></i></div>
+                    <div class="absolute bottom-[10%] right-[10%] text-white/10 text-7xl animate-pulse" style="animation-duration: 12s;"><i class="fa-solid fa-cloud"></i></div>
+                    
+                    <!-- Logo Area -->
+                    <div class="flex flex-col items-center z-10 scale-110">
+                        <div class="w-24 h-24 mb-6 relative">
+                            <!-- Glow -->
+                            <div class="absolute inset-0 bg-white/40 rounded-[2rem] blur-xl transform rotate-6 animate-pulse"></div>
+                            
+                            <div class="absolute inset-0 bg-white rounded-[2rem] shadow-xl border border-white/50 flex items-center justify-center animate-bounce-slow transform -rotate-3">
+                                <!-- Gradient Capsule Icon inside White Box -->
+                                <div class="w-12 h-8 rounded-full border-[4px] border-sky-400 flex items-center justify-center transform -rotate-12 bg-gradient-to-tr from-sky-100 to-pink-50">
+                                     <div class="w-3.5 h-3.5 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full shadow-inner"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h1 class="text-3xl font-bold text-white drop-shadow-md tracking-widest mb-1" style="font-family: 'Poppins', sans-serif;">
+                            ピクキャン
+                        </h1>
+                        <p class="text-[10px] text-sky-600 font-bold tracking-[0.3em] uppercase bg-white/30 px-3 py-1 rounded-full backdrop-blur-sm">Memories in Capsule</p>
+                    </div>
+
+                    <div class="absolute bottom-10 text-sky-700/50 text-[9px] font-bold">
+                        &copy; 2024 Piku-Can
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTimers() {
+            const now = new Date();
+            let shouldRefresh = false;
+
+            document.querySelectorAll('.countdown').forEach(el => {
+                const target = new Date(el.dataset.date);
+                if (now >= target) {
+                    shouldRefresh = true;
+                }
+                else { el.innerText = getTimeLeft(target); }
+            });
+
+            if (shouldRefresh) {
+                if (currentPage === 'home' || currentPage === 'collection') {
+                    renderHome(document.getElementById('mainContent'));
+                }
+            }
+        }
+
+        function getTimeLeft(targetDate) {
+            const now = new Date();
+            const diff = targetDate - now;
+            if (diff <= 0) return "開封可能";
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            if (days > 0) return `あと${days}日${hours}時間`;
+            return `あと${hours}時間${minutes}分`;
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `absolute top-16 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-[10px] font-bold shadow-lg transition-all duration-300 z-[70] flex items-center gap-1.5 whitespace-nowrap bg-white text-slate-600 border border-slate-100`;
+            toast.innerHTML = type === 'error'
+                ? `<i class="fa-solid fa-circle-exclamation text-red-400"></i> ${msg}`
+                : `<i class="fa-solid fa-check text-sky-400"></i> ${msg}`;
+            const app = document.querySelector('.relative.flex.flex-col');
+            if (app) app.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.transform = "translate(-50%, 10px)"; });
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = "translate(-50%, -10px)";
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        function attachSwipeListeners() {
+            const capsule = document.getElementById('swipableCapsule');
+            if (!capsule) return;
+
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+
+            const handleStart = (e) => {
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                isDragging = true;
+                capsule.style.transition = 'none';
+            };
+
+            const handleMove = (e) => {
+                if (!isDragging) return;
+                const y = e.touches ? e.touches[0].clientY : e.clientY;
+                const deltaY = y - startY;
+                if (deltaY < 0) {
+                    currentY = deltaY;
+                    capsule.style.transform = `translateY(${deltaY}px) scale(${1 - Math.abs(deltaY) / 1000})`;
+                    capsule.style.opacity = `${1 - Math.abs(deltaY) / 600}`;
+                }
+            };
+
+            const handleEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                if (currentY < -200) {
+                    capsule.style.transition = 'all 0.5s ease-in';
+                    capsule.style.transform = `translateY(-800px) scale(0.5)`;
+                    capsule.style.opacity = '0';
+                    finalizeSealing();
+                } else {
+                    capsule.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    capsule.style.transform = 'translateY(0) scale(1)';
+                    capsule.style.opacity = '1';
+                    currentY = 0;
+                }
+            };
+
+            capsule.addEventListener('mousedown', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+            capsule.addEventListener('touchstart', handleStart);
+            document.addEventListener('touchmove', handleMove);
+            document.addEventListener('touchend', handleEnd);
+        }
+    </script>
+</body>
+
+</html>
